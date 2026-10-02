@@ -29,7 +29,7 @@ Before running the patcher, ensure your system meets the following requirements:
 
 | Requirement | Specification | Notes |
 |---|---|---|
-| **Target Application** | **Google Antigravity IDE (v2.17.0)** | Fully tested & verified on **v2.17.0** build |
+| **Target Application** | **Google Antigravity IDE (v2.19.1)** | Fully tested & verified on **v2.19.1** build |
 | **Operating System** | Windows 10 / 11 (64-bit), macOS 11+, or Linux | Windows is fully automated via `patch.bat` |
 | **Runtime Environment** | **Python 3.8+** *OR* **Node.js 16+** | Pure standard library — zero external pip/npm packages required |
 | **Network** | **100% Offline** | Zero CDN dependencies; all fonts and assets are embedded locally |
@@ -79,22 +79,18 @@ Popular commercial Persian fonts such as **IRANSans**, **IRANYekan**, and **Dana
 
 ### 🔢 Persian vs. English Digits Toggle (۰-۹ vs 0-9)
 - **Developer-Friendly Numeral Control**: In coding and bilingual technical environments, keeping numbers in Latin/English digits (`0-9`) is essential to prevent version strings (e.g., `v2.17.0`), port numbers (`localhost:8080`), Git commits, and issue IDs (`#102`) from becoming distorted.
-- **One-Click Numeral Switching**: For users preferring pure Persian typography in documentation or chat discussions, toggling **Persian Digits** ON instantly transforms numbers into Eastern Arabic/Persian numerals (`۰-۹`) using native OpenType font features (`"ss01"` / `"locl"` / `"numr"`).
+- **One-Click Numeral Switching**: For users preferring pure Persian typography in documentation or chat discussions, toggling **Persian Digits** ON transforms numbers into Persian numerals (`۰-۹`) using standard OpenType stylistic sets (`"ss01"`).
 
 ### 💻 Dedicated Monospace Code & Terminal Font Selector
 - Enforces strict LTR technical isolation while allowing developers to independently customize the monospace font used in syntax-highlighted code blocks, tool calls, and terminal buffers:
-  - **Default Monospace** (`Consolas`, `Monaco`, `Courier New`)
-  - **Fira Code** (with programming ligatures)
-  - **JetBrains Mono**
-  - **Cascadia Code**
-  - **Vazir Code** (bilingual Persian/English monospace)
+  - **Default Monospace** (System default monospace)
+  - **Consolas** (Windows standard developer monospace)
+  - **Fira Code** (renders if installed on system; supports programming ligatures)
+  - **JetBrains Mono** (renders if installed on system)
+  - **Cascadia Code** (Windows built-in / Terminal font)
+  - **Vazir Code** (bundled bilingual Persian/English monospace)
   - **Custom Monospace...** (e.g., `Hack`, `Source Code Pro`, `Inconsolata`)
-
-### ⚡ Quick Presets (One-Click Ergonomics)
-- Switch typography scales and line spacings with a single click:
-  - **Compact**: `13px` font size, `1.5` line spacing — High information density for split-screen coding.
-  - **Standard**: `15px` font size, `1.75` line spacing — Balanced, comfortable default for daily development.
-  - **Reading**: `17px` font size, `2.0` line spacing — Relaxed typography for deep documentation reading.
+  *(Note: Third-party developer fonts like Fira Code or JetBrains Mono utilize your locally installed OS fonts, gracefully falling back to Consolas if not installed.)*
 
 ### 🛡️ Ironclad Technical Isolation
 - **Preserved Coding Environments**: Strict LTR isolation enforced on:
@@ -109,7 +105,6 @@ Popular commercial Persian fonts such as **IRANSans**, **IRANYekan**, and **Dana
 - **Real-Time Customization**:
   - Toggle Smart RTL on/off in real-time
   - Toggle Persian digits (۰-۹) vs Latin digits (0-9)
-  - Choose one-click Quick Presets (`Compact`, `Standard`, `Reading`)
   - Select between Vazirmatn, Arad, B Nazanin, Shabnam, Sahel, Samim, Tahoma, System, or Custom Font
   - Customize code block monospace typography independently
   - Adjust typography font size (`12px` – `24px`) with instant visual feedback
@@ -288,9 +283,8 @@ Simply press `Enter` (or type `1`) to apply the patch.
 | **Toggle Smart RTL** | `Alt + R` | Instantly switches between Smart RTL and stock LTR mode with visual toast HUD |
 | **Appearance Menu** | Top Bar Button (`Appearance`) | Opens floating customization popover for all appearance and typography controls |
 | **Persian Digits Toggle** | In Popover Switch | Toggle between Eastern Arabic/Persian numerals (`۰-۹`) and Latin/English digits (`0-9`) |
-| **Quick Presets** | In Popover Buttons | One-click typography presets: `Compact` (13px / 1.5), `Standard` (15px / 1.75), `Reading` (17px / 2.0) |
 | **Font Family** | In Popover Dropdown | Select from Vazirmatn, Arad, B Nazanin, Shabnam, Sahel, Samim, Tahoma, System, or Custom Font |
-| **Code & Terminal Font** | In Popover Dropdown | Customize code block and terminal monospace font (Default, Fira Code, JetBrains Mono, Cascadia Code, Vazir Code, or Custom) |
+| **Code & Terminal Font** | In Popover Dropdown | Customize code block and terminal monospace font (Default, Consolas, Fira Code, JetBrains Mono, Cascadia Code, Vazir Code, or Custom) |
 | **Font Size** | In Popover Slider / `+` / `-` | Dynamically adjust font scale between `12px` and `24px` |
 | **Line Spacing** | In Popover Buttons | Set line height to `1.5` (Compact), `1.75` (Standard), or `2.0` (Relaxed) |
 | **Reset to Default** | In Popover Footer | Instantly restore typography settings to factory default values |

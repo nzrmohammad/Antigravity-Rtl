@@ -1209,6 +1209,8 @@ try {
 
     function getCodeFontValue(codeFont, customCodeFont) {
         switch(codeFont) {
+            case 'Consolas':
+                return "'Consolas', 'Courier New', monospace";
             case 'Fira Code':
                 return "'Fira Code', Consolas, 'Courier New', monospace";
             case 'JetBrains Mono':
@@ -1537,7 +1539,8 @@ try {
                 <div style="margin-bottom: 14px;">
                     <label style="display: block; font-size: 13px; font-weight: 600; color: #e4e4e7; margin-bottom: 7px;">Code & Terminal Font:</label>
                     <select id="ag-code-font-select" style="width: 100%; background: #27272a; color: #f4f4f5; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; padding: 7px 11px; font-size: 13px; font-weight: 500; outline: none; font-family: inherit; cursor: pointer; transition: border-color .15s;">
-                        <option value="default" \${currentSettings.codeFont === 'default' ? 'selected' : ''}>Default (Consolas / Monaco)</option>
+                        <option value="default" \${currentSettings.codeFont === 'default' ? 'selected' : ''}>Default (System Monospace)</option>
+                        <option value="Consolas" \${currentSettings.codeFont === 'Consolas' ? 'selected' : ''}>Consolas</option>
                         <option value="Fira Code" \${currentSettings.codeFont === 'Fira Code' ? 'selected' : ''}>Fira Code</option>
                         <option value="JetBrains Mono" \${currentSettings.codeFont === 'JetBrains Mono' ? 'selected' : ''}>JetBrains Mono</option>
                         <option value="Cascadia Code" \${currentSettings.codeFont === 'Cascadia Code' ? 'selected' : ''}>Cascadia Code</option>
