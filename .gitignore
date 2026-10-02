@@ -29,3 +29,9 @@ dom_inspection*.json
 DOM_Dump*.json
 # Agent workspace
 .agents/
+
+# Proprietary / Licensed fonts (local user only, excluded from git)
+fonts/Dana*
+fonts/IRANSans*
+fonts/IRANYekan*
+yekan-iransans-dana/

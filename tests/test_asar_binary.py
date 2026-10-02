@@ -63,8 +63,9 @@ class TestAsarBinary(unittest.TestCase):
 
             # 3. Verify metadata
             meta = out_archive.get_metadata()
+            orig_meta = archive.get_metadata()
             self.assertTrue(meta["is_patched"])
-            self.assertEqual(meta["version_str"], "2.17.0")
+            self.assertEqual(meta["version_str"], orig_meta["version_str"])
 
 
 if __name__ == "__main__":

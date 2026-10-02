@@ -22,6 +22,21 @@ FONT_MAPPINGS = [
     ("Vazirmatn", 400, "Vazirmatn-Regular.woff2"),
     ("Vazirmatn", 500, "Vazirmatn-Medium.woff2"),
     ("Vazirmatn", 700, "Vazirmatn-Bold.woff2"),
+    ("Arad", 400, "Arad-Regular.woff2"),
+    ("Arad", 500, "Arad-Medium.woff2"),
+    ("Arad", 700, "Arad-Bold.woff2"),
+    ("B Nazanin", 400, "B-Nazanin.woff2"),
+    ("B Nazanin", 700, "B-Nazanin.woff2"),
+    ("Shabnam", 400, "Shabnam.woff2"),
+    ("Shabnam", 700, "Shabnam-Bold.woff2"),
+    ("Sahel", 400, "Sahel.woff2"),
+    ("Sahel", 700, "Sahel-Bold.woff2"),
+    ("Samim", 400, "Samim.woff2"),
+    ("Samim", 700, "Samim-Bold.woff2"),
+]
+
+# Proprietary/Licensed fonts for local usage (gitignored)
+LOCAL_OPTIONAL_FONTS = [
     ("IRANSans", 400, "IRANSans-Regular.woff2"),
     ("IRANSans", 500, "IRANSans-Medium.woff2"),
     ("IRANSans", 700, "IRANSans-Bold.woff2"),
@@ -31,14 +46,6 @@ FONT_MAPPINGS = [
     ("Dana", 400, "Dana-Regular.woff2"),
     ("Dana", 500, "Dana-Medium.woff2"),
     ("Dana", 700, "Dana-Bold.woff2"),
-    ("B Nazanin", 400, "B-Nazanin.woff2"),
-    ("B Nazanin", 700, "B-Nazanin.woff2"),
-    ("Shabnam", 400, "Shabnam.woff2"),
-    ("Shabnam", 700, "Shabnam-Bold.woff2"),
-    ("Sahel", 400, "Sahel.woff2"),
-    ("Sahel", 700, "Sahel-Bold.woff2"),
-    ("Samim", 400, "Samim.woff2"),
-    ("Samim", 700, "Samim-Bold.woff2"),
 ]
 
 def encode_font(file_path):
@@ -51,11 +58,16 @@ def generate_font_faces():
     lines = [
         "/* =========================================================",
         "   0. Embedded Offline WOFF2 Fonts (100% Offline, Zero CDN)",
-        "   Families: Vazirmatn, IRANSans, IRANYekan, Dana, B Nazanin, Shabnam, Sahel, Samim",
+        "   Families: Vazirmatn, Arad, B Nazanin, Shabnam, Sahel, Samim",
         "   ========================================================= */",
         ""
     ]
-    for family, weight, filename in FONT_MAPPINGS:
+    all_fonts = list(FONT_MAPPINGS)
+    for family, weight, filename in LOCAL_OPTIONAL_FONTS:
+        if os.path.isfile(os.path.join(FONTS_DIR, filename)):
+            all_fonts.append((family, weight, filename))
+
+    for family, weight, filename in all_fonts:
         font_path = os.path.join(FONTS_DIR, filename)
         if not os.path.isfile(font_path):
             print(f"[!] Warning: Font file missing: {font_path}")

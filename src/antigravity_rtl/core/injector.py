@@ -65,7 +65,10 @@ try {{
         fontFamily: 'Vazirmatn',
         customFont: '',
         fontSize: 15,
-        lineHeight: 1.75
+        lineHeight: 1.75,
+        persianDigits: false,
+        codeFont: 'default',
+        customCodeFont: ''
     }};
 
     function getSettings() {{
@@ -92,6 +95,8 @@ try {{
                 return "'IRANYekan', 'IRANYekanX', 'IRAN Yekan', 'IranYekan', sans-serif";
             case 'Dana':
                 return "'Dana', 'dana', sans-serif";
+            case 'Arad':
+                return "'Arad', sans-serif";
             case 'BNazanin':
                 return "'B Nazanin', 'BNazanin', 'B-Nazanin', serif, sans-serif";
             case 'Shabnam':
@@ -105,10 +110,36 @@ try {{
             case 'System':
                 return "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
             case 'Custom':
-                return (customName ? `'${{customName}}', ` : "") + "'Vazirmatn', sans-serif";
+                if (customName) {{
+                    const c = customName.trim();
+                    if (/^iransans/i.test(c)) return `'${{c}}', 'IRANSansX', 'IRANSans', 'IRAN Sans', 'IranSans', sans-serif`;
+                    if (/^iranyekan/i.test(c)) return `'${{c}}', 'IRANYekanX', 'IRANYekan', 'IRAN Yekan', 'IranYekan', sans-serif`;
+                    if (/^dana/i.test(c)) return `'${{c}}', 'Dana', 'dana', sans-serif`;
+                    return `'${{c}}', 'Vazirmatn', sans-serif`;
+                }}
+                return "'Vazirmatn', sans-serif";
             case 'Vazirmatn':
             default:
                 return "'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+        }}
+    }}
+
+    function getCodeFontValue(codeFont, customCodeFont) {{
+        switch(codeFont) {{
+            case 'Fira Code':
+                return "'Fira Code', Consolas, 'Courier New', monospace";
+            case 'JetBrains Mono':
+                return "'JetBrains Mono', Consolas, 'Courier New', monospace";
+            case 'Cascadia Code':
+                return "'Cascadia Code', 'Cascadia Mono', Consolas, monospace";
+            case 'Vazirmatn':
+            case 'Vazir Code':
+                return "'Vazirmatn', 'Vazir Code', Consolas, monospace";
+            case 'Custom':
+                return (customCodeFont ? `'${{customCodeFont}}', ` : "") + "Consolas, monospace";
+            case 'default':
+            default:
+                return "Consolas, 'Courier New', Menlo, Monaco, monospace";
         }}
     }}
 
@@ -118,6 +149,8 @@ try {{
         root.style.setProperty('--ag-font-size', s.fontSize + 'px');
         root.style.setProperty('--ag-line-height', s.lineHeight.toString());
         root.style.setProperty('--ag-font-family', getFontFamilyValue(s.fontFamily, s.customFont));
+        root.style.setProperty('--ag-code-font', getCodeFontValue(s.codeFont, s.customCodeFont));
+        root.style.setProperty('--ag-font-features', s.persianDigits ? '"ss01" 1' : 'normal');
 
         if (!document.body) return;
         if (s.rtlEnabled) {{
@@ -348,8 +381,10 @@ try {{
             popoverInstance.style.cssText = `
                 position: fixed;
                 top: ${{rect.bottom + 6}}px;
-                left: ${{Math.min(rect.left, window.innerWidth - 345)}}px;
-                width: 335px;
+                left: ${{Math.min(rect.left, window.innerWidth - 365)}}px;
+                width: 350px;
+                max-height: 85vh;
+                overflow-y: auto;
                 background: rgba(22, 22, 26, 0.96);
                 backdrop-filter: blur(20px);
                 -webkit-backdrop-filter: blur(20px);
@@ -363,6 +398,8 @@ try {{
                 box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
                 z-index: 999999;
                 user-select: none;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
             `;
 
             popoverInstance.innerHTML = `
@@ -370,11 +407,11 @@ try {{
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span style="font-size: 15px; font-weight: 700; color: #fff; letter-spacing: 0.2px;">Appearance & Smart RTL</span>
                     </div>
-                    <span style="font-size: 11px; padding: 2px 8px; background: rgba(59, 130, 246, 0.22); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 5px; font-weight: 600;">v1.0</span>
+                    <span style="font-size: 11px; padding: 2px 8px; background: rgba(59, 130, 246, 0.22); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 5px; font-weight: 600;">v1.1</span>
                 </div>
 
                 <!-- RTL Toggle -->
-                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 11px 14px; border-radius: 10px; margin-bottom: 14px; border: 1px solid rgba(255,255,255,0.08);">
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 11px 14px; border-radius: 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.08);">
                     <div>
                         <div style="font-size: 13.5px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px;">
                             <span>Smart RTL</span>
@@ -387,6 +424,20 @@ try {{
                     </div>
                 </div>
 
+                <!-- Persian Digits Toggle -->
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 11px 14px; border-radius: 10px; margin-bottom: 14px; border: 1px solid rgba(255,255,255,0.08);">
+                    <div>
+                        <div style="font-size: 13.5px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px;">
+                            <span>Persian Digits</span>
+                            <span id="ag-digits-status-badge" style="font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600; background: ${{currentSettings.persianDigits ? 'rgba(34, 197, 94, 0.22)' : 'rgba(161, 161, 170, 0.2)'}}; color: ${{currentSettings.persianDigits ? '#4ade80' : '#a1a1aa'}};">${{currentSettings.persianDigits ? '۰-۹ (Farsi)' : '0-9 (Latin)'}}</span>
+                        </div>
+                        <div style="font-size: 11.5px; color: #a1a1aa; margin-top: 3px;">Toggle Persian numerals vs Latin digits</div>
+                    </div>
+                    <div id="ag-toggle-digits" style="width: 46px; height: 26px; background: ${{currentSettings.persianDigits ? '#3b82f6' : '#3f3f46'}}; border-radius: 13px; position: relative; cursor: pointer; transition: background .2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); flex-shrink: 0;">
+                        <div id="ag-digits-knob" style="position: absolute; width: 20px; height: 20px; background: white; border-radius: 50%; top: 3px; left: ${{currentSettings.persianDigits ? '22px' : '4px'}}; transition: left .2s; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+                    </div>
+                </div>
+
                 <!-- Font Family Selection -->
                 <div style="margin-bottom: 14px;">
                     <label style="display: block; font-size: 13px; font-weight: 600; color: #e4e4e7; margin-bottom: 7px;">Font Family:</label>
@@ -396,6 +447,7 @@ try {{
                         <option value="IRANYekan" ${{currentSettings.fontFamily === 'IRANYekan' ? 'selected' : ''}}>IRANYekan</option>
                         <option value="Dana" ${{currentSettings.fontFamily === 'Dana' ? 'selected' : ''}}>Dana</option>
                         <option value="BNazanin" ${{currentSettings.fontFamily === 'BNazanin' ? 'selected' : ''}}>B Nazanin</option>
+                        <option value="Arad" ${{currentSettings.fontFamily === 'Arad' ? 'selected' : ''}}>Arad</option>
                         <option value="Shabnam" ${{currentSettings.fontFamily === 'Shabnam' ? 'selected' : ''}}>Shabnam</option>
                         <option value="Sahel" ${{currentSettings.fontFamily === 'Sahel' ? 'selected' : ''}}>Sahel</option>
                         <option value="Samim" ${{currentSettings.fontFamily === 'Samim' ? 'selected' : ''}}>Samim</option>
@@ -404,7 +456,23 @@ try {{
                         <option value="Custom" ${{currentSettings.fontFamily === 'Custom' ? 'selected' : ''}}>Custom Font...</option>
                     </select>
                     <div id="ag-custom-font-container" style="display: ${{currentSettings.fontFamily === 'Custom' ? 'block' : 'none'}}; margin-top: 7px;">
-                        <input type="text" id="ag-custom-font-input" placeholder="Font name (e.g. Dana, B Titr)" value="${{currentSettings.customFont || ''}}" style="width: 100%; background: #1f1f23; color: #fff; border: 1px solid rgba(59,130,246,0.5); border-radius: 8px; padding: 7px 10px; font-size: 12.5px; outline: none; box-sizing: border-box;">
+                        <input type="text" id="ag-custom-font-input" placeholder="Font name (e.g. IRANSansX, Dana, B Titr)" value="${{currentSettings.customFont || ''}}" style="width: 100%; background: #1f1f23; color: #fff; border: 1px solid rgba(59,130,246,0.5); border-radius: 8px; padding: 7px 10px; font-size: 12.5px; outline: none; box-sizing: border-box;">
+                    </div>
+                </div>
+
+                <!-- Code & Terminal Font Selection -->
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; color: #e4e4e7; margin-bottom: 7px;">Code & Terminal Font:</label>
+                    <select id="ag-code-font-select" style="width: 100%; background: #27272a; color: #f4f4f5; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; padding: 7px 11px; font-size: 13px; font-weight: 500; outline: none; font-family: inherit; cursor: pointer; transition: border-color .15s;">
+                        <option value="default" ${{currentSettings.codeFont === 'default' ? 'selected' : ''}}>Default (Consolas / Monaco)</option>
+                        <option value="Fira Code" ${{currentSettings.codeFont === 'Fira Code' ? 'selected' : ''}}>Fira Code</option>
+                        <option value="JetBrains Mono" ${{currentSettings.codeFont === 'JetBrains Mono' ? 'selected' : ''}}>JetBrains Mono</option>
+                        <option value="Cascadia Code" ${{currentSettings.codeFont === 'Cascadia Code' ? 'selected' : ''}}>Cascadia Code</option>
+                        <option value="Vazirmatn" ${{currentSettings.codeFont === 'Vazirmatn' ? 'selected' : ''}}>Vazir Code</option>
+                        <option value="Custom" ${{currentSettings.codeFont === 'Custom' ? 'selected' : ''}}>Custom Monospace...</option>
+                    </select>
+                    <div id="ag-custom-code-font-container" style="display: ${{currentSettings.codeFont === 'Custom' ? 'block' : 'none'}}; margin-top: 7px;">
+                        <input type="text" id="ag-custom-code-font-input" placeholder="Monospace font name (e.g. Hack, Source Code Pro)" value="${{currentSettings.customCodeFont || ''}}" style="width: 100%; background: #1f1f23; color: #fff; border: 1px solid rgba(59,130,246,0.5); border-radius: 8px; padding: 7px 10px; font-size: 12.5px; outline: none; box-sizing: border-box;">
                     </div>
                 </div>
 
@@ -463,6 +531,22 @@ try {{
                 saveSettings(currentSettings);
             }};
 
+            const digitsToggle = popoverInstance.querySelector('#ag-toggle-digits');
+            const digitsKnob = popoverInstance.querySelector('#ag-digits-knob');
+            const digitsBadge = popoverInstance.querySelector('#ag-digits-status-badge');
+            digitsToggle.onclick = () => {{
+                currentSettings.persianDigits = !currentSettings.persianDigits;
+                digitsToggle.style.background = currentSettings.persianDigits ? '#3b82f6' : '#3f3f46';
+                digitsKnob.style.left = currentSettings.persianDigits ? '22px' : '4px';
+                if (digitsBadge) {{
+                    digitsBadge.style.background = currentSettings.persianDigits ? 'rgba(34, 197, 94, 0.22)' : 'rgba(161, 161, 170, 0.2)';
+                    digitsBadge.style.color = currentSettings.persianDigits ? '#4ade80' : '#a1a1aa';
+                    digitsBadge.textContent = currentSettings.persianDigits ? '۰-۹ (Farsi)' : '0-9 (Latin)';
+                }}
+                applySettings(currentSettings);
+                saveSettings(currentSettings);
+            }};
+
             const fontSelect = popoverInstance.querySelector('#ag-font-family-select');
             const customContainer = popoverInstance.querySelector('#ag-custom-font-container');
             const customInput = popoverInstance.querySelector('#ag-custom-font-input');
@@ -484,13 +568,34 @@ try {{
                 saveSettings(currentSettings);
             }};
 
+            const codeSelect = popoverInstance.querySelector('#ag-code-font-select');
+            const customCodeContainer = popoverInstance.querySelector('#ag-custom-code-font-container');
+            const customCodeInput = popoverInstance.querySelector('#ag-custom-code-font-input');
+            codeSelect.onchange = () => {{
+                currentSettings.codeFont = codeSelect.value;
+                if (codeSelect.value === 'Custom') {{
+                    customCodeContainer.style.display = 'block';
+                    customCodeInput.focus();
+                }} else {{
+                    customCodeContainer.style.display = 'none';
+                }}
+                applySettings(currentSettings);
+                saveSettings(currentSettings);
+            }};
+
+            customCodeInput.oninput = () => {{
+                currentSettings.customCodeFont = customCodeInput.value.trim();
+                applySettings(currentSettings);
+                saveSettings(currentSettings);
+            }};
+
             const sizeSlider = popoverInstance.querySelector('#ag-font-size-slider');
             const sizeBadge = popoverInstance.querySelector('#ag-font-size-badge');
             const decBtn = popoverInstance.querySelector('#ag-font-dec');
             const incBtn = popoverInstance.querySelector('#ag-font-inc');
 
             function updateFontSize(val) {{
-                val = Math.max(12, Math.min(22, parseInt(val) || 15));
+                val = Math.max(12, Math.min(24, parseInt(val) || 15));
                 currentSettings.fontSize = val;
                 sizeSlider.value = val;
                 sizeBadge.textContent = val + 'px';
@@ -503,21 +608,24 @@ try {{
             incBtn.onclick = () => updateFontSize(currentSettings.fontSize + 1);
 
             const lhButtons = popoverInstance.querySelectorAll('.ag-lh-btn');
+            function updateLineHeightUI(lh) {{
+                lhButtons.forEach(btnEl => {{
+                    const isMatch = parseFloat(btnEl.getAttribute('data-lh')) === lh;
+                    btnEl.style.background = isMatch ? '#3b82f6' : '#27272a';
+                    btnEl.style.borderColor = isMatch ? '#3b82f6' : 'rgba(255,255,255,0.12)';
+                    btnEl.style.color = isMatch ? '#fff' : '#d4d4d8';
+                }});
+            }}
+
             lhButtons.forEach(b => {{
                 b.onclick = () => {{
                     const lh = parseFloat(b.getAttribute('data-lh'));
                     currentSettings.lineHeight = lh;
-                    lhButtons.forEach(btnEl => {{
-                        const isMatch = parseFloat(btnEl.getAttribute('data-lh')) === lh;
-                        btnEl.style.background = isMatch ? '#3b82f6' : '#27272a';
-                        btnEl.style.borderColor = isMatch ? '#3b82f6' : 'rgba(255,255,255,0.12)';
-                        btnEl.style.color = isMatch ? '#fff' : '#d4d4d8';
-                    }});
+                    updateLineHeightUI(lh);
                     applySettings(currentSettings);
                     saveSettings(currentSettings);
                 }};
             }});
-
             popoverInstance.querySelector('#ag-close-popover').onclick = closePopover;
             popoverInstance.querySelector('#ag-reset-defaults').onclick = () => {{
                 currentSettings = Object.assign({{}}, DEFAULT_SETTINGS);

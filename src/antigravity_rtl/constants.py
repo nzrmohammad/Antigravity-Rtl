@@ -24,5 +24,8 @@ DEFAULT_SETTINGS = {
     "fontFamily": "Vazirmatn",
     "customFont": "",
     "fontSize": 15,
-    "lineHeight": 1.75
+    "lineHeight": 1.75,
+    "persianDigits": False,
+    "codeFont": "default",
+    "customCodeFont": ""
 }
