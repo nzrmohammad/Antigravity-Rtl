@@ -22,6 +22,17 @@ FONT_MAPPINGS = [
     ("Vazirmatn", 400, "Vazirmatn-Regular.woff2"),
     ("Vazirmatn", 500, "Vazirmatn-Medium.woff2"),
     ("Vazirmatn", 700, "Vazirmatn-Bold.woff2"),
+    ("IRANSans", 400, "IRANSans-Regular.woff2"),
+    ("IRANSans", 500, "IRANSans-Medium.woff2"),
+    ("IRANSans", 700, "IRANSans-Bold.woff2"),
+    ("IRANYekan", 400, "IRANYekan-Regular.woff2"),
+    ("IRANYekan", 500, "IRANYekan-Medium.woff2"),
+    ("IRANYekan", 700, "IRANYekan-Bold.woff2"),
+    ("Dana", 400, "Dana-Regular.woff2"),
+    ("Dana", 500, "Dana-Medium.woff2"),
+    ("Dana", 700, "Dana-Bold.woff2"),
+    ("B Nazanin", 400, "B-Nazanin.woff2"),
+    ("B Nazanin", 700, "B-Nazanin.woff2"),
     ("Shabnam", 400, "Shabnam.woff2"),
     ("Shabnam", 700, "Shabnam-Bold.woff2"),
     ("Sahel", 400, "Sahel.woff2"),
@@ -40,7 +51,7 @@ def generate_font_faces():
     lines = [
         "/* =========================================================",
         "   0. Embedded Offline WOFF2 Fonts (100% Offline, Zero CDN)",
-        "   Families: Vazirmatn (400, 500, 700), Shabnam (400, 700), Sahel (400, 700), Samim (400, 700)",
+        "   Families: Vazirmatn, IRANSans, IRANYekan, Dana, B Nazanin, Shabnam, Sahel, Samim",
         "   ========================================================= */",
         ""
     ]
@@ -50,9 +61,13 @@ def generate_font_faces():
             print(f"[!] Warning: Font file missing: {font_path}")
             continue
         data_uri = encode_font(font_path)
+        family_clean = family.replace(" ", "")
         lines.append(f"@font-face {{")
         lines.append(f"  font-family: '{family}';")
-        lines.append(f"  src: url('{data_uri}') format('woff2');")
+        if family != family_clean:
+            lines.append(f"  src: local('{family}'), local('{family_clean}'), url('{data_uri}') format('woff2');")
+        else:
+            lines.append(f"  src: local('{family}'), url('{data_uri}') format('woff2');")
         lines.append(f"  font-weight: {weight};")
         lines.append(f"  font-style: normal;")
         lines.append(f"  font-display: swap;")
@@ -67,8 +82,7 @@ def sync_patchers(css_content):
         with open(ASSETS_PY, "r", encoding="utf-8") as f:
             py_code = f.read()
         pattern = r'(RTL_CSS\s*=\s*r?""")(.*?)("""\n\ndef get_effective_css)'
-        replacement = r'\1' + css_content + r'\3'
-        new_py = re.sub(pattern, replacement, py_code, flags=re.DOTALL)
+        new_py = re.sub(pattern, lambda m: m.group(1) + css_content + m.group(3), py_code, flags=re.DOTALL)
         with open(ASSETS_PY, "w", encoding="utf-8") as f:
             f.write(new_py)
         print("  [OK] assets.py updated.")
@@ -79,8 +93,7 @@ def sync_patchers(css_content):
             py_code = f.read()
         if "RTL_CSS" in py_code:
             pattern = r'(RTL_CSS\s*=\s*r?""")(.*?)("""\n# Enable ANSI)'
-            replacement = r'\1' + css_content + r'\3'
-            new_py = re.sub(pattern, replacement, py_code, flags=re.DOTALL)
+            new_py = re.sub(pattern, lambda m: m.group(1) + css_content + m.group(3), py_code, flags=re.DOTALL)
             with open(PATCHER_PY, "w", encoding="utf-8") as f:
                 f.write(new_py)
             print("  [OK] patcher.py updated.")
@@ -91,8 +104,7 @@ def sync_patchers(css_content):
             js_code = f.read()
         pattern = r'(const RTL_CSS\s*=\s*`)(.*?)(`;\n)'
         clean_js_css = css_content.replace("\\", "\\\\").replace("`", r"\`").replace("${", r"\${")
-        replacement = r'\1' + clean_js_css + r'\3'
-        new_js = re.sub(pattern, replacement, js_code, flags=re.DOTALL)
+        new_js = re.sub(pattern, lambda m: m.group(1) + clean_js_css + m.group(3), js_code, flags=re.DOTALL)
         with open(PATCHER_JS, "w", encoding="utf-8") as f:
             f.write(new_js)
         print("  [OK] patcher.js updated.")

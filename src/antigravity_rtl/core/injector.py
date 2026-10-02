@@ -86,6 +86,14 @@ try {{
 
     function getFontFamilyValue(fontName, customName) {{
         switch(fontName) {{
+            case 'IRANSans':
+                return "'IRANSans', 'IRANSansX', 'IRAN Sans', 'IranSans', sans-serif";
+            case 'IRANYekan':
+                return "'IRANYekan', 'IRANYekanX', 'IRAN Yekan', 'IranYekan', sans-serif";
+            case 'Dana':
+                return "'Dana', 'dana', sans-serif";
+            case 'BNazanin':
+                return "'B Nazanin', 'BNazanin', 'B-Nazanin', serif, sans-serif";
             case 'Shabnam':
                 return "'Shabnam', 'Vazirmatn', sans-serif";
             case 'Sahel':
@@ -348,7 +356,8 @@ try {{
                 border: 1px solid rgba(255, 255, 255, 0.15);
                 color: #f4f4f5;
                 font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                direction: rtl;
+                direction: ltr;
+                text-align: left;
                 padding: 16px;
                 border-radius: 14px;
                 box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
@@ -373,8 +382,8 @@ try {{
                         </div>
                         <div style="font-size: 11.5px; color: #a1a1aa; margin-top: 3px;">Auto-direction & Persian fonts (Alt+R)</div>
                     </div>
-                    <div id="ag-toggle-rtl" style="width: 46px; height: 26px; background: ${{currentSettings.rtlEnabled ? '#3b82f6' : '#3f3f46'}}; border-radius: 13px; position: relative; cursor: pointer; transition: background .2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);">
-                        <div id="ag-toggle-knob" style="position: absolute; width: 20px; height: 20px; background: white; border-radius: 50%; top: 3px; right: ${{currentSettings.rtlEnabled ? '4px' : '22px'}}; transition: right .2s; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+                    <div id="ag-toggle-rtl" style="width: 46px; height: 26px; background: ${{currentSettings.rtlEnabled ? '#3b82f6' : '#3f3f46'}}; border-radius: 13px; position: relative; cursor: pointer; transition: background .2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); flex-shrink: 0;">
+                        <div id="ag-toggle-knob" style="position: absolute; width: 20px; height: 20px; background: white; border-radius: 50%; top: 3px; left: ${{currentSettings.rtlEnabled ? '22px' : '4px'}}; transition: left .2s; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
                     </div>
                 </div>
 
@@ -383,6 +392,10 @@ try {{
                     <label style="display: block; font-size: 13px; font-weight: 600; color: #e4e4e7; margin-bottom: 7px;">Font Family:</label>
                     <select id="ag-font-family-select" style="width: 100%; background: #27272a; color: #f4f4f5; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; padding: 7px 11px; font-size: 13px; font-weight: 500; outline: none; font-family: inherit; cursor: pointer; transition: border-color .15s;">
                         <option value="Vazirmatn" ${{currentSettings.fontFamily === 'Vazirmatn' ? 'selected' : ''}}>Vazirmatn (Default)</option>
+                        <option value="IRANSans" ${{currentSettings.fontFamily === 'IRANSans' ? 'selected' : ''}}>IRANSans</option>
+                        <option value="IRANYekan" ${{currentSettings.fontFamily === 'IRANYekan' ? 'selected' : ''}}>IRANYekan</option>
+                        <option value="Dana" ${{currentSettings.fontFamily === 'Dana' ? 'selected' : ''}}>Dana</option>
+                        <option value="BNazanin" ${{currentSettings.fontFamily === 'BNazanin' ? 'selected' : ''}}>B Nazanin</option>
                         <option value="Shabnam" ${{currentSettings.fontFamily === 'Shabnam' ? 'selected' : ''}}>Shabnam</option>
                         <option value="Sahel" ${{currentSettings.fontFamily === 'Sahel' ? 'selected' : ''}}>Sahel</option>
                         <option value="Samim" ${{currentSettings.fontFamily === 'Samim' ? 'selected' : ''}}>Samim</option>
@@ -391,7 +404,7 @@ try {{
                         <option value="Custom" ${{currentSettings.fontFamily === 'Custom' ? 'selected' : ''}}>Custom Font...</option>
                     </select>
                     <div id="ag-custom-font-container" style="display: ${{currentSettings.fontFamily === 'Custom' ? 'block' : 'none'}}; margin-top: 7px;">
-                        <input type="text" id="ag-custom-font-input" placeholder="Font name (e.g. Dana, B Yekan)" value="${{currentSettings.customFont || ''}}" style="width: 100%; background: #1f1f23; color: #fff; border: 1px solid rgba(59,130,246,0.5); border-radius: 8px; padding: 7px 10px; font-size: 12.5px; outline: none; box-sizing: border-box;">
+                        <input type="text" id="ag-custom-font-input" placeholder="Font name (e.g. Dana, B Titr)" value="${{currentSettings.customFont || ''}}" style="width: 100%; background: #1f1f23; color: #fff; border: 1px solid rgba(59,130,246,0.5); border-radius: 8px; padding: 7px 10px; font-size: 12.5px; outline: none; box-sizing: border-box;">
                     </div>
                 </div>
 
@@ -399,9 +412,9 @@ try {{
                 <div style="margin-bottom: 14px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
                         <span style="font-size: 13px; font-weight: 600; color: #e4e4e7;">Font Size:</span>
-                        <span id="ag-font-size-badge" style="font-size: 12.5px; font-weight: 700; color: #60a5fa; background: rgba(59, 130, 246, 0.18); border: 1px solid rgba(59,130,246,0.3); padding: 2px 9px; border-radius: 5px; direction: ltr;">${{currentSettings.fontSize}}px</span>
+                        <span id="ag-font-size-badge" style="font-size: 12.5px; font-weight: 700; color: #60a5fa; background: rgba(59, 130, 246, 0.18); border: 1px solid rgba(59,130,246,0.3); padding: 2px 9px; border-radius: 5px;">${{currentSettings.fontSize}}px</span>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 9px; direction: ltr;">
+                    <div style="display: flex; align-items: center; gap: 9px;">
                         <button id="ag-font-dec" style="width: 34px; height: 30px; background: #27272a; border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 7px; cursor: pointer; font-size: 16px; font-weight: 700; transition: background .15s;">-</button>
                         <input type="range" id="ag-font-size-slider" min="12" max="24" value="${{currentSettings.fontSize}}" step="1" style="flex: 1; accent-color: #3b82f6; cursor: pointer; height: 6px;">
                         <button id="ag-font-inc" style="width: 34px; height: 30px; background: #27272a; border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 7px; cursor: pointer; font-size: 16px; font-weight: 700; transition: background .15s;">+</button>
@@ -440,7 +453,7 @@ try {{
             toggleBtn.onclick = () => {{
                 currentSettings.rtlEnabled = !currentSettings.rtlEnabled;
                 toggleBtn.style.background = currentSettings.rtlEnabled ? '#3b82f6' : '#3f3f46';
-                knob.style.right = currentSettings.rtlEnabled ? '4px' : '22px';
+                knob.style.left = currentSettings.rtlEnabled ? '22px' : '4px';
                 if (statusBadge) {{
                     statusBadge.style.background = currentSettings.rtlEnabled ? 'rgba(34, 197, 94, 0.2)' : 'rgba(161, 161, 170, 0.2)';
                     statusBadge.style.color = currentSettings.rtlEnabled ? '#4ade80' : '#a1a1aa';
