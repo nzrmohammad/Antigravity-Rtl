@@ -11,6 +11,7 @@ import json
 import struct
 import hashlib
 from typing import Optional, Dict, Any, Tuple
+from ..constants import logger
 
 
 def sha256_blocks(data: bytes, block_size: int = 4 * 1024 * 1024) -> Dict[str, Any]:
@@ -69,7 +70,8 @@ class AsarArchive:
                     f.seek(payload_start + offset)
                     file_data = f.read(size)
                     return file_data.decode("utf-8", errors="replace")
-        except Exception:
+        except Exception as e:
+            logger.debug("ASAR file extraction error for '%s': %s", target_path, e)
             return None
         return None
 
@@ -87,8 +89,8 @@ class AsarArchive:
                 try:
                     pkg = json.loads(pkg_code)
                     version_str = pkg.get("version", "0.0.0")
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug("Failed parsing package.json version: %s", e)
 
             v_parts = []
             for p in version_str.split("."):
@@ -108,7 +110,8 @@ class AsarArchive:
                 "size": size,
                 "path": self.file_path
             }
-        except Exception:
+        except Exception as e:
+            logger.debug("Failed getting ASAR metadata for %s: %s", self.file_path, e)
             return None
 
     def patch_files(self, output_path: str, replacements: Dict[str, Any]):
@@ -149,6 +152,7 @@ class AsarArchive:
                 else:
                     norm_replacements[k_norm] = v
 
+            updated_files = []
             new_payload = bytearray()
             current_offset = 0
 
@@ -159,7 +163,8 @@ class AsarArchive:
 
                 if path_str in norm_replacements:
                     content = norm_replacements[path_str]
-                    print(f"  [+] Updated in archive: {path_str} ({len(content):,} bytes)")
+                    updated_files.append({"path": path_str, "size": len(content)})
+                    logger.debug("Updated in ASAR archive: %s (%d bytes)", path_str, len(content))
                 else:
                     old_offset = int(node["offset"])
                     old_size = int(node["size"])
@@ -186,6 +191,14 @@ class AsarArchive:
             out.write(new_json_bytes)
             out.write(new_padding)
             out.write(new_payload)
+
+        return {
+            "updated_files": updated_files,
+            "updated_count": len(updated_files),
+            "payload_bytes": len(new_payload),
+            "header_bytes": new_size_header,
+            "total_size": len(new_header_prefix) + new_json_len + new_padding_len + len(new_payload)
+        }
 
     @staticmethod
     def compare_versions(v1: Tuple[int, ...], v2: Tuple[int, ...]) -> int:

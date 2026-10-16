@@ -22,6 +22,11 @@ FONT_MAPPINGS = [
     ("Vazirmatn", 400, "Vazirmatn-Regular.woff2"),
     ("Vazirmatn", 500, "Vazirmatn-Medium.woff2"),
     ("Vazirmatn", 700, "Vazirmatn-Bold.woff2"),
+    ("JetBrains Mono", 400, "JetBrainsMono-Regular.woff2"),
+    ("JetBrains Mono", 700, "JetBrainsMono-Bold.woff2"),
+    ("Inter", 400, "Inter-Regular.woff2"),
+    ("Inter", 500, "Inter-Medium.woff2"),
+    ("Inter", 700, "Inter-Bold.woff2"),
     ("Arad", 400, "Arad-Regular.woff2"),
     ("Arad", 500, "Arad-Medium.woff2"),
     ("Arad", 700, "Arad-Bold.woff2"),
@@ -74,21 +79,21 @@ def generate_font_faces():
             continue
         data_uri = encode_font(font_path)
         family_clean = family.replace(" ", "")
-        lines.append(f"@font-face {{")
+        lines.append("@font-face {")
         lines.append(f"  font-family: '{family}';")
         if family != family_clean:
             lines.append(f"  src: local('{family}'), local('{family_clean}'), url('{data_uri}') format('woff2');")
         else:
             lines.append(f"  src: local('{family}'), url('{data_uri}') format('woff2');")
         lines.append(f"  font-weight: {weight};")
-        lines.append(f"  font-style: normal;")
-        lines.append(f"  font-display: swap;")
-        lines.append(f"}}\n")
+        lines.append("  font-style: normal;")
+        lines.append("  font-display: swap;")
+        lines.append("}\n")
     return "\n".join(lines)
 
 def sync_patchers(css_content):
     print("[*] Synchronizing CSS into assets.py and patcher.js...")
-    
+
     # Sync assets.py (modular OOP engine)
     if os.path.isfile(ASSETS_PY):
         with open(ASSETS_PY, "r", encoding="utf-8") as f:
@@ -128,7 +133,7 @@ def main():
         sys.exit(1)
 
     font_faces = generate_font_faces()
-    
+
     # Read existing rules after font-faces in CSS
     if os.path.isfile(CSS_FILE):
         with open(CSS_FILE, "r", encoding="utf-8") as f:

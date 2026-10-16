@@ -2,12 +2,12 @@
 
 <div align="center">
 
+[![Version: v1.1.0](https://img.shields.io/badge/Version-v1.1.0-blue.svg?style=for-the-badge)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 [![Platform: Windows | macOS | Linux](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-0078D6?style=for-the-badge&logo=windows)](https://microsoft.com)
-[![Tested on: Antigravity v2.19.1](https://img.shields.io/badge/Antigravity-v2.19.1%20Verified-00C853?style=for-the-badge&logo=google)](https://deepmind.google)
+[![Tested on: Antigravity v2.24.0+](https://img.shields.io/badge/Antigravity-v2.24.0+%20Verified-00C853?style=for-the-badge&logo=google)](https://deepmind.google)
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![Node.js 16+](https://img.shields.io/badge/Node.js-16+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
-[![Offline Fonts](https://img.shields.io/badge/Persian%20Fonts-100%25%20Offline-FF6B6B?style=for-the-badge)](fonts/)
+[![Offline Fonts](https://img.shields.io/badge/Embedded%20Fonts-100%25%20Offline-FF6B6B?style=for-the-badge)](fonts/)
 
 **Professional, intelligent bidirectional text direction (RTL/LTR) engine with fully offline embedded Persian typography, modular Object-Oriented architecture, and zero-reflow layout for Google Antigravity IDE.**
 
@@ -19,7 +19,7 @@
 
 **Antigravity Smart RTL** transforms the text presentation experience in Google DeepMind's Antigravity IDE. It delivers enterprise-grade right-to-left (RTL) typography for Persian, Arabic, and bilingual environments while rigorously preserving left-to-right (LTR) orientation for source code, terminals, tool panels, thoughts, and technical identifiers.
 
-Engineered for performance and resilience, it features a modular Object-Oriented Architecture (OOP), 100% offline embedded Persian fonts, live hot-reloading via the Chrome DevTools Protocol (CDP), official Electron ASAR binary specification compliance with SHA-256 block integrity verification, and safe non-destructive shortcut handling by default.
+Engineered for performance and resilience, it features a modular Object-Oriented Architecture (OOP), 100% offline embedded Persian fonts (Vazirmatn, Arad, B Nazanin, Shabnam, Sahel, Samim) and English developer typography (JetBrains Mono, Inter), live hot-reloading via the Chrome DevTools Protocol (CDP), official Electron ASAR binary specification compliance with SHA-256 block integrity verification, and non-destructive shortcut handling.
 
 ---
 
@@ -29,11 +29,11 @@ Before running the patcher, ensure your system meets the following requirements:
 
 | Requirement | Specification | Notes |
 |---|---|---|
-| **Target Application** | **Google Antigravity IDE (v2.19.1)** | Fully tested & verified on **v2.19.1** build |
-| **Operating System** | Windows 10 / 11 (64-bit), macOS 11+, or Linux | Windows is fully automated via `patch.bat` |
-| **Runtime Environment** | **Python 3.8+** *OR* **Node.js 16+** | Pure standard library — zero external pip/npm packages required |
-| **Network** | **100% Offline** | Zero CDN dependencies; all fonts and assets are embedded locally |
-| **Permissions** | Standard User | Run as standard user (elevated rights not required for user-level installs) |
+| **Target Application** | **Google Antigravity IDE (v2.24.0+)** | Verified on modern v2.x builds |
+| **Operating System** | Windows 10 / 11 (64-bit), macOS 11+, or Linux | Cross-platform directory & process handling |
+| **Runtime Environment** | **Python 3.8+** *OR* **Node.js 16+** | Pure standard library — zero external dependencies |
+| **Network** | **100% Offline** | Zero CDN dependencies; all fonts & assets embedded locally |
+| **Permissions** | Standard User | Run as standard user without elevated administrative rights |
 
 ---
 
@@ -177,10 +177,25 @@ Double-click `patch.bat` or run in CMD / PowerShell:
 patch.bat
 ```
 
-**2. Python CLI:**  
+**2. Modern Python / pipx CLI (Recommended):**  
+```bash
+# Direct install via pipx (isolated global tool)
+pipx install .
+
+# Or editable install in development:
+pip install -e .
+
+# Run anywhere in your terminal:
+antigravity-rtl
+```
+
+**3. Direct Python Script Execution:**  
 ```powershell
 # Standard safe install (shortcuts preserved)
 python src/patcher.py
+
+# Safe dry-run simulation (no files modified)
+python src/patcher.py --dry-run
 
 # Opt-in: Install with Auto-Shield shortcuts
 python src/patcher.py --install-shortcuts
@@ -263,6 +278,8 @@ Simply press `Enter` (or type `1`) to apply the patch.
 
 | Flag | Shorthand | Description |
 |---|---|---|
+| `--dry-run` | | **Simulation mode**: Validates paths, calculates SHA-256 blocks and prints the exact patch manifest without modifying any files on disk. |
+| `--verbose` | `-v` | Enables detailed standard-library debug logs and stack traces for troubleshooting. |
 | `--install-shortcuts` | `--shortcuts`, `-s`, `3` | **Opt-in**: Protects desktop & start menu shortcuts using `AntigravityLauncher.exe` for automatic update healing. Default is disabled (safe mode). |
 | `--restore` | `-r`, `2` | Fully restores `app.asar` from original factory backup and reverts shortcuts. |
 | `--diagnostics` | `--diag`, `4` | Displays system telemetry, patch status, live CDP port, and installation health check. |
@@ -282,12 +299,37 @@ Simply press `Enter` (or type `1`) to apply the patch.
 |---|---|---|
 | **Toggle Smart RTL** | `Alt + R` | Instantly switches between Smart RTL and stock LTR mode with visual toast HUD |
 | **Appearance Menu** | Top Bar Button (`Appearance`) | Opens floating customization popover for all appearance and typography controls |
+| **Justify Text Toggle** | In Popover Switch | Smart two-sided paragraph alignment (`text-align: justify`) with anchored terminal line edges |
 | **Persian Digits Toggle** | In Popover Switch | Toggle between Eastern Arabic/Persian numerals (`۰-۹`) and Latin/English digits (`0-9`) |
-| **Font Family** | In Popover Dropdown | Select from Vazirmatn, Arad, B Nazanin, Shabnam, Sahel, Samim, Tahoma, System, or Custom Font |
-| **Code & Terminal Font** | In Popover Dropdown | Customize code block and terminal monospace font (Default, Consolas, Fira Code, JetBrains Mono, Cascadia Code, Vazir Code, or Custom) |
+| **Font Family** | In Popover Dropdown | Select from Vazirmatn, Inter, Arad, B Nazanin, Shabnam, Sahel, Samim, Tahoma, System, or Custom |
+| **Code & Terminal Font** | In Popover Dropdown | Customize code block and terminal monospace font (JetBrains Mono, Consolas, Fira Code, Cascadia Code, Vazir Code, or Custom) |
 | **Font Size** | In Popover Slider / `+` / `-` | Dynamically adjust font scale between `12px` and `24px` |
 | **Line Spacing** | In Popover Buttons | Set line height to `1.5` (Compact), `1.75` (Standard), or `2.0` (Relaxed) |
 | **Reset to Default** | In Popover Footer | Instantly restore typography settings to factory default values |
+
+---
+
+## 🔍 دقیقاً چه فایل‌هایی تغییر می‌کنند؟ (Modification & Security Audit Manifest)
+
+چون این ابزار پکیج داخلی نرم‌افزار را تغییر می‌دهد، شفافیت کامل عملکرد و امنیت فایل‌های کاربر اولویت بنیادین است:
+
+1. **فایل پشتیبان کارخانه (`resources/app.asar.original_backup`)**:
+   قبل از هرگونه ویرایش، یک کپی ۱۰۰٪ دست‌نخورده از فایل اصلی برنامه در پوشه `resources` ذخیره می‌شود. این فایل هرگز بازنویسی مجدد نمی‌شود تا همیشه بازگشت به نسخه اولیه ممکن باشد.
+2. **کادر تزریق در اسکریپت پیش‌بارگذاری (`dist/preload.js` داخل ASAR)**:
+   تنها فایل اصلی که تغییر می‌یابد این اسکریپت است؛ کدهای سبک آبزرور، استایل‌های آفلاین CSS و دکمه منوی Appearance در انتهای این فایل قرار می‌گیرند.
+3. **هوک‌های حفظ پچ در آپدیت خودکار (اختیاری در ASAR)**:
+   در فایل‌های `dist/updater.js` و `node_modules/electron-updater/...` تنها چند خط هوک غیرتخریب‌کننده به متد `quitAndInstall()` اضافه می‌شود تا هنگام انتشار آپدیت رسمی توسط گوگل، پچ در پس‌زمینه دوباره اعمال شود.
+4. **پوشه محلی اسکریپت‌های پچ (`%APPDATA%/Antigravity/rtl-patch`)**:
+   روی ویندوز (یا `~/.config/Antigravity` در لینوکس و `~/Library/Application Support/Antigravity` در مک)، یک کپی از فایل‌های پچ و فونت‌ها برای هیلینگ آپدیت ذخیره می‌شود که با اجرای دستور `--restore` کاملاً پاک‌سازی می‌شود.
+5. **شورت‌کات‌ها و لانچر (غیرفعال در حالت پیش‌فرض)**:
+   شورت‌کات‌های اصلی دسکتاپ به هیچ وجه تغییر نمی‌کنند مگر آنکه کاربر صریحاً گزینه `--install-shortcuts` را انتخاب کند.
+
+---
+
+## Technical Documentation & ASAR Specification
+
+For deep-dive documentation on the Electron ASAR binary layout, 16-byte header packing, padding rules, and cryptographic SHA-256 block hash verification, see:
+- [docs/ASAR_SPEC.md](docs/ASAR_SPEC.md)
 
 ---
 

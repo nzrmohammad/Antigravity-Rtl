@@ -67,14 +67,26 @@ try {{
         fontSize: 15,
         lineHeight: 1.75,
         persianDigits: false,
-        codeFont: 'default',
+        justifyText: false,
+        codeFont: 'JetBrains Mono',
         customCodeFont: ''
     }};
 
     function getSettings() {{
         try {{
             const raw = localStorage.getItem(STORAGE_KEY);
-            if (raw) return Object.assign({{}}, DEFAULT_SETTINGS, JSON.parse(raw));
+            if (raw) {{
+                const parsed = JSON.parse(raw);
+                if (parsed && typeof parsed === 'object') {{
+                    if (parsed.codeFont === 'default' || !parsed.codeFont) {{
+                        parsed.codeFont = 'JetBrains Mono';
+                    }}
+                    if (typeof parsed.justifyText !== 'boolean') {{
+                        parsed.justifyText = false;
+                    }}
+                    return Object.assign({{}}, DEFAULT_SETTINGS, parsed);
+                }}
+            }}
         }} catch(e) {{}}
         return Object.assign({{}}, DEFAULT_SETTINGS);
     }}
@@ -95,6 +107,8 @@ try {{
                 return "'IRANYekan', 'IRANYekanX', 'IRAN Yekan', 'IranYekan', sans-serif";
             case 'Dana':
                 return "'Dana', 'dana', sans-serif";
+            case 'Inter':
+                return "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
             case 'Arad':
                 return "'Arad', sans-serif";
             case 'BNazanin':
@@ -126,12 +140,12 @@ try {{
 
     function getCodeFontValue(codeFont, customCodeFont) {{
         switch(codeFont) {{
+            case 'JetBrains Mono':
+                return "'JetBrains Mono', Consolas, 'Courier New', monospace";
             case 'Consolas':
                 return "'Consolas', 'Courier New', monospace";
             case 'Fira Code':
                 return "'Fira Code', Consolas, 'Courier New', monospace";
-            case 'JetBrains Mono':
-                return "'JetBrains Mono', Consolas, 'Courier New', monospace";
             case 'Cascadia Code':
                 return "'Cascadia Code', 'Cascadia Mono', Consolas, monospace";
             case 'Vazirmatn':
@@ -141,7 +155,7 @@ try {{
                 return (customCodeFont ? `'${{customCodeFont}}', ` : "") + "Consolas, monospace";
             case 'default':
             default:
-                return "Consolas, 'Courier New', Menlo, Monaco, monospace";
+                return "'JetBrains Mono', Consolas, 'Courier New', Menlo, Monaco, monospace";
         }}
     }}
 
@@ -155,6 +169,12 @@ try {{
         root.style.setProperty('--ag-font-features', s.persianDigits ? '"ss01" 1' : 'normal');
 
         if (!document.body) return;
+        if (s.justifyText) {{
+            document.body.classList.add('ag-text-justify');
+        }} else {{
+            document.body.classList.remove('ag-text-justify');
+        }}
+
         if (s.rtlEnabled) {{
             document.body.classList.remove('ag-rtl-disabled');
             processAllSmartRTL(document.body);
@@ -222,6 +242,23 @@ try {{
         if (!el || el.nodeType !== 1) return;
         if (document.body && document.body.classList.contains('ag-rtl-disabled')) return;
         if (isInsideTechnicalContainer(el)) return;
+
+        if (el.getAttribute('data-testid') === 'conversation-row-sidebar' || (el.closest && el.closest('[data-testid="conversation-row-sidebar"]'))) {{
+            const row = el.getAttribute('data-testid') === 'conversation-row-sidebar' ? el : el.closest('[data-testid="conversation-row-sidebar"]');
+            const dir = detectSmartDirection(row.textContent || '');
+            if (dir) {{
+                row.setAttribute('dir', dir);
+                const spans = row.querySelectorAll('span, .truncate');
+                for (let i = 0; i < spans.length; i++) spans[i].setAttribute('dir', dir);
+            }}
+            return;
+        }}
+
+        if (el.tagName === 'P' && el.closest && el.closest('div[data-lexical-editor="true"], #antigravity\\.agentSidePanelInputBox [contenteditable="true"]')) {{
+            const dir = detectSmartDirection(el.textContent || '');
+            if (dir) el.setAttribute('dir', dir);
+            return;
+        }}
 
         if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {{
             if (/[؀-ۿ]/.test(el.value || '')) el.setAttribute('dir', 'rtl');
@@ -314,6 +351,8 @@ try {{
         const base = (root.nodeType === 9 || root === document.body) ? document : root;
         const selector = 'p, h1, h2, h3, h4, h5, h6, li, blockquote, table, ' +
                          'div.artifact-card, div.artifact-card .text-secondary-foreground, ' +
+                         '[data-testid="conversation-row-sidebar"], [data-testid="conversation-row-sidebar"] span, [data-testid="conversation-row-sidebar"] .truncate, ' +
+                         'div[data-lexical-editor="true"] p, #antigravity\\.agentSidePanelInputBox [contenteditable="true"] p, ' +
                          'input, textarea, [contenteditable="true"]';
         try {{
             const elements = base.querySelectorAll(selector);
@@ -427,7 +466,7 @@ try {{
                 </div>
 
                 <!-- Persian Digits Toggle -->
-                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 11px 14px; border-radius: 10px; margin-bottom: 14px; border: 1px solid rgba(255,255,255,0.08);">
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 11px 14px; border-radius: 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.08);">
                     <div>
                         <div style="font-size: 13.5px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px;">
                             <span>Persian Digits</span>
@@ -440,11 +479,26 @@ try {{
                     </div>
                 </div>
 
+                <!-- Justify Text Toggle -->
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 11px 14px; border-radius: 10px; margin-bottom: 14px; border: 1px solid rgba(255,255,255,0.08);">
+                    <div>
+                        <div style="font-size: 13.5px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px;">
+                            <span>Justify Text</span>
+                            <span id="ag-justify-status-badge" style="font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600; background: ${{currentSettings.justifyText ? 'rgba(34, 197, 94, 0.22)' : 'rgba(161, 161, 170, 0.2)'}}; color: ${{currentSettings.justifyText ? '#4ade80' : '#a1a1aa'}};">${{currentSettings.justifyText ? 'Enabled' : 'Disabled'}}</span>
+                        </div>
+                        <div style="font-size: 11.5px; color: #a1a1aa; margin-top: 3px;">تراز دوطرفه متن پاراگراف‌ها با حفظ خط آخر</div>
+                    </div>
+                    <div id="ag-toggle-justify" style="width: 46px; height: 26px; background: ${{currentSettings.justifyText ? '#3b82f6' : '#3f3f46'}}; border-radius: 13px; position: relative; cursor: pointer; transition: background .2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); flex-shrink: 0;">
+                        <div id="ag-justify-knob" style="position: absolute; width: 20px; height: 20px; background: white; border-radius: 50%; top: 3px; left: ${{currentSettings.justifyText ? '22px' : '4px'}}; transition: left .2s; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+                    </div>
+                </div>
+
                 <!-- Font Family Selection -->
                 <div style="margin-bottom: 14px;">
                     <label style="display: block; font-size: 13px; font-weight: 600; color: #e4e4e7; margin-bottom: 7px;">Font Family:</label>
                     <select id="ag-font-family-select" style="width: 100%; background: #27272a; color: #f4f4f5; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; padding: 7px 11px; font-size: 13px; font-weight: 500; outline: none; font-family: inherit; cursor: pointer; transition: border-color .15s;">
                         <option value="Vazirmatn" ${{currentSettings.fontFamily === 'Vazirmatn' ? 'selected' : ''}}>Vazirmatn (Default)</option>
+                        <option value="Inter" ${{currentSettings.fontFamily === 'Inter' ? 'selected' : ''}}>Inter (English / Clean)</option>
                         <option value="IRANSans" ${{currentSettings.fontFamily === 'IRANSans' ? 'selected' : ''}}>IRANSans</option>
                         <option value="IRANYekan" ${{currentSettings.fontFamily === 'IRANYekan' ? 'selected' : ''}}>IRANYekan</option>
                         <option value="Dana" ${{currentSettings.fontFamily === 'Dana' ? 'selected' : ''}}>Dana</option>
@@ -466,10 +520,9 @@ try {{
                 <div style="margin-bottom: 14px;">
                     <label style="display: block; font-size: 13px; font-weight: 600; color: #e4e4e7; margin-bottom: 7px;">Code & Terminal Font:</label>
                     <select id="ag-code-font-select" style="width: 100%; background: #27272a; color: #f4f4f5; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; padding: 7px 11px; font-size: 13px; font-weight: 500; outline: none; font-family: inherit; cursor: pointer; transition: border-color .15s;">
-                        <option value="default" ${{currentSettings.codeFont === 'default' ? 'selected' : ''}}>Default (System Monospace)</option>
+                        <option value="JetBrains Mono" ${{(currentSettings.codeFont === 'JetBrains Mono' || currentSettings.codeFont === 'default') ? 'selected' : ''}}>JetBrains Mono (Default / Bundled)</option>
                         <option value="Consolas" ${{currentSettings.codeFont === 'Consolas' ? 'selected' : ''}}>Consolas</option>
                         <option value="Fira Code" ${{currentSettings.codeFont === 'Fira Code' ? 'selected' : ''}}>Fira Code</option>
-                        <option value="JetBrains Mono" ${{currentSettings.codeFont === 'JetBrains Mono' ? 'selected' : ''}}>JetBrains Mono</option>
                         <option value="Cascadia Code" ${{currentSettings.codeFont === 'Cascadia Code' ? 'selected' : ''}}>Cascadia Code</option>
                         <option value="Vazirmatn" ${{currentSettings.codeFont === 'Vazirmatn' ? 'selected' : ''}}>Vazir Code</option>
                         <option value="Custom" ${{currentSettings.codeFont === 'Custom' ? 'selected' : ''}}>Custom Monospace...</option>
@@ -545,6 +598,22 @@ try {{
                     digitsBadge.style.background = currentSettings.persianDigits ? 'rgba(34, 197, 94, 0.22)' : 'rgba(161, 161, 170, 0.2)';
                     digitsBadge.style.color = currentSettings.persianDigits ? '#4ade80' : '#a1a1aa';
                     digitsBadge.textContent = currentSettings.persianDigits ? '۰-۹ (Farsi)' : '0-9 (Latin)';
+                }}
+                applySettings(currentSettings);
+                saveSettings(currentSettings);
+            }};
+
+            const justifyToggle = popoverInstance.querySelector('#ag-toggle-justify');
+            const justifyKnob = popoverInstance.querySelector('#ag-justify-knob');
+            const justifyBadge = popoverInstance.querySelector('#ag-justify-status-badge');
+            justifyToggle.onclick = () => {{
+                currentSettings.justifyText = !currentSettings.justifyText;
+                justifyToggle.style.background = currentSettings.justifyText ? '#3b82f6' : '#3f3f46';
+                justifyKnob.style.left = currentSettings.justifyText ? '22px' : '4px';
+                if (justifyBadge) {{
+                    justifyBadge.style.background = currentSettings.justifyText ? 'rgba(34, 197, 94, 0.22)' : 'rgba(161, 161, 170, 0.2)';
+                    justifyBadge.style.color = currentSettings.justifyText ? '#4ade80' : '#a1a1aa';
+                    justifyBadge.textContent = currentSettings.justifyText ? 'Enabled' : 'Disabled';
                 }}
                 applySettings(currentSettings);
                 saveSettings(currentSettings);

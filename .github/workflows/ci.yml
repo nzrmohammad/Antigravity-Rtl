@@ -1,0 +1,71 @@
+name: CI & Build Verification
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test & Lint (${{ matrix.os }} - Py ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        python-version: [ "3.8", "3.10", "3.12" ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest ruff
+
+      - name: Run Ruff Lint Check
+        run: |
+          ruff check .
+
+      - name: Run Test Suite
+        run: |
+          python -m pytest tests/ -v
+
+  build-launcher:
+    name: Compile C++ Launcher & Verify Hash (Windows)
+    runs-on: windows-latest
+    needs: test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSVC developer environment
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Compile AntigravityLauncher.cpp
+        shell: pwsh
+        run: |
+          cl.exe /O2 /W3 /D_UNICODE /DUNICODE src/launcher/AntigravityLauncher.cpp /Fe:AntigravityLauncher.exe shell32.lib user32.lib
+          if (-not (Test-Path AntigravityLauncher.exe)) {
+              throw "AntigravityLauncher.exe compilation failed."
+          }
+          $hash = (Get-FileHash AntigravityLauncher.exe -Algorithm SHA256).Hash
+          Write-Host "Compiled AntigravityLauncher.exe SHA-256: $hash"
+          Set-Content -Path "launcher_hash.txt" -Value $hash
+
+      - name: Upload Launcher Binary & Hash
+        uses: actions/upload-artifact@v4
+        with:
+          name: AntigravityLauncher-Windows
+          path: |
+            AntigravityLauncher.exe
+            launcher_hash.txt

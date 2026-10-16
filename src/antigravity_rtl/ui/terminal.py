@@ -11,7 +11,7 @@ import ctypes
 from ..constants import (
     CLR_RESET, CLR_BOLD, CLR_DIM, CLR_CYAN,
     CLR_GREEN, CLR_YELLOW, CLR_RED, CLR_WHITE, CLR_GRAY,
-    APP_NAME
+    APP_NAME, logger
 )
 
 
@@ -28,13 +28,13 @@ class TerminalUI:
         if hasattr(sys.stdout, "reconfigure"):
             try:
                 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Failed reconfiguring stdout encoding: %s", e)
         if hasattr(sys.stderr, "reconfigure"):
             try:
                 sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Failed reconfiguring stderr encoding: %s", e)
 
         if cls._ansi_enabled:
             return
@@ -47,8 +47,8 @@ class TerminalUI:
                 mode.value |= 4  # ENABLE_VIRTUAL_TERMINAL_PROCESSING
                 kernel32.SetConsoleMode(hStdOut, mode)
                 cls._ansi_enabled = True
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Virtual terminal processing setup failed: %s", e)
         else:
             cls._ansi_enabled = True
 
@@ -129,7 +129,7 @@ class TerminalUI:
             )
 
         lines = raw_logo.strip('\n').split('\n')
-        max_w = max(len(l) for l in lines)
+        max_w = max(len(line_str) for line_str in lines)
         out = []
         for line in lines:
             line_chars = []
@@ -150,12 +150,14 @@ class TerminalUI:
         cls.enable_windows_ansi()
         try:
             print(cls.get_gradient_logo())
-        except Exception:
+        except Exception as e:
+            logger.debug("Failed printing gradient logo: %s", e)
             print(f"\n{CLR_CYAN}=== {APP_NAME} ==={CLR_RESET}\n")
         try:
             print(f"  {CLR_GRAY}{'─' * 90}{CLR_RESET}")
             print(f"         {CLR_WHITE}{CLR_BOLD}:::  {APP_NAME}  :::{CLR_RESET}\n")
-        except Exception:
+        except Exception as e:
+            logger.debug("Failed printing banner separator: %s", e)
             print(f"{APP_NAME}\n")
 
     @staticmethod

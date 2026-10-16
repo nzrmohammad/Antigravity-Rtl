@@ -4,8 +4,13 @@
 Antigravity RTL - Global Constants & Terminal Color Definitions
 """
 
-VERSION = "1.0.0"
+import logging
+
+VERSION = "1.1.0"
 APP_NAME = "Smart RTL & Modern Appearance Engine for Antigravity"
+
+# Standard Library Logger for Antigravity RTL
+logger = logging.getLogger("antigravity_rtl")
 
 # ANSI Terminal Color Codes
 CLR_RESET = "\033[0m"
@@ -26,6 +31,7 @@ DEFAULT_SETTINGS = {
     "fontSize": 15,
     "lineHeight": 1.75,
     "persianDigits": False,
-    "codeFont": "default",
+    "justifyText": False,
+    "codeFont": "JetBrains Mono",
     "customCodeFont": ""
 }

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Binary tests for Electron ASAR format integrity and compliance.
+Uses synthetic ASAR archives to run 100% self-contained across CI and all OS platforms.
 """
 
 import os
@@ -14,23 +15,29 @@ import tempfile
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "src"))
 
 from antigravity_rtl.core.asar import AsarArchive
+from synthetic_asar import build_synthetic_asar
 
 
 class TestAsarBinary(unittest.TestCase):
 
     def test_asar_rebuild_and_integrity(self):
-        real_asar = r"C:\Users\Mohammad\AppData\Local\Programs\antigravity\resources\app.asar"
-        if not os.path.isfile(real_asar):
-            self.skipTest("Real app.asar not present for binary test")
-
         with tempfile.TemporaryDirectory() as tmpdir:
+            input_asar = os.path.join(tmpdir, "input.asar")
             out_asar = os.path.join(tmpdir, "test.asar")
-            archive = AsarArchive(real_asar)
+
+            # 0. Generate synthetic, spec-compliant ASAR
+            build_synthetic_asar(input_asar, version="2.24.0", is_patched=False)
+            archive = AsarArchive(input_asar)
 
             replacements = {
                 "dist/preload.js": "console.log('test-rtl'); /* __ANTIGRAVITY_RTL_INJECTED__ */"
             }
-            archive.patch_files(out_asar, replacements)
+            stats = archive.patch_files(out_asar, replacements)
+
+            # Check stats dictionary return
+            self.assertIsInstance(stats, dict)
+            self.assertEqual(stats["updated_count"], 1)
+            self.assertEqual(stats["updated_files"][0]["path"], "dist/preload.js")
 
             # 1. Verify binary header structure matches Electron C++ Archive::Init spec
             with open(out_asar, "rb") as f:
@@ -66,6 +73,7 @@ class TestAsarBinary(unittest.TestCase):
             orig_meta = archive.get_metadata()
             self.assertTrue(meta["is_patched"])
             self.assertEqual(meta["version_str"], orig_meta["version_str"])
+            self.assertEqual(meta["version_tuple"], (2, 24, 0))
 
 
 if __name__ == "__main__":

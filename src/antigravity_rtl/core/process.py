@@ -9,7 +9,7 @@ import os
 import sys
 import time
 import subprocess
-from typing import Optional
+from ..constants import logger
 
 
 class ProcessManager:
@@ -31,7 +31,8 @@ class ProcessManager:
                     text=True
                 )
                 return cls.PROCESS_NAME_WIN.lower() in res.stdout.lower()
-            except Exception:
+            except Exception as e:
+                logger.debug("Failed checking Windows process status: %s", e)
                 return False
         else:
             try:
@@ -41,28 +42,58 @@ class ProcessManager:
                     text=True
                 )
                 return res.returncode == 0
-            except Exception:
+            except Exception as e:
+                logger.debug("Failed checking POSIX process status: %s", e)
                 return False
 
     @classmethod
-    def close(cls, timeout: float = 1.5) -> bool:
-        """Terminates running Antigravity processes."""
+    def close(cls, timeout: float = 3.0) -> bool:
+        """
+        Terminates running Antigravity processes gracefully, falling back to force kill.
+        """
+        if not cls.is_running():
+            return True
+
         print("[*] Closing running Antigravity processes...")
         try:
+            # 1. Attempt graceful close (WM_CLOSE / SIGTERM)
             if sys.platform == "win32":
                 subprocess.run(
-                    ['taskkill', '/F', '/IM', cls.PROCESS_NAME_WIN, '/T'],
+                    ['taskkill', '/IM', cls.PROCESS_NAME_WIN],
                     capture_output=True
                 )
             else:
                 subprocess.run(
-                    ['pkill', '-f', '-i', cls.PROCESS_NAME_POSIX],
+                    ['pkill', '-TERM', '-f', '-i', cls.PROCESS_NAME_POSIX],
                     capture_output=True
                 )
-            time.sleep(timeout)
+
+            # Wait for graceful exit
+            start_time = time.time()
+            while time.time() - start_time < timeout:
+                if not cls.is_running():
+                    return True
+                time.sleep(0.3)
+
+            # 2. Force kill if still alive
+            if cls.is_running():
+                logger.debug("Process did not exit gracefully within timeout; initiating force kill.")
+                if sys.platform == "win32":
+                    subprocess.run(
+                        ['taskkill', '/F', '/IM', cls.PROCESS_NAME_WIN, '/T'],
+                        capture_output=True
+                    )
+                else:
+                    subprocess.run(
+                        ['pkill', '-9', '-f', '-i', cls.PROCESS_NAME_POSIX],
+                        capture_output=True
+                    )
+                time.sleep(0.5)
+
             return True
         except Exception as e:
             print(f"[-] Failed to terminate process: {e}")
+            logger.debug("Process termination exception: %s", e)
             return False
 
     @classmethod

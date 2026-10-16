@@ -5,15 +5,13 @@ Antigravity RTL - Interactive Terminal Menu (OOP)
 Presents telemetry dashboards, handles user input, and triggers patching operations.
 """
 
-import os
-import sys
 import time
-from typing import Optional
 
 from .terminal import TerminalUI
 from ..constants import (
-    CLR_RESET, CLR_BOLD, CLR_DIM, CLR_CYAN,
-    CLR_GREEN, CLR_YELLOW, CLR_RED, CLR_WHITE, CLR_GRAY
+    CLR_RESET, CLR_CYAN,
+    CLR_GREEN, CLR_YELLOW, CLR_RED, CLR_WHITE,
+    logger
 )
 from ..core.patcher import AntigravityPatcher
 from ..core.process import ProcessManager
@@ -79,15 +77,15 @@ class InteractiveMenu:
 
             action_lines = [
                 "",
-                f"  \033[42;30;1m  1  \033[0m   \033[97;1mInstall Smart RTL (Safe Default - Shortcuts Preserved)\033[0m   \033[96m>> [SAFE INSTALL]\033[0m",
+                "  \033[42;30;1m  1  \033[0m   \033[97;1mInstall Smart RTL (Safe Default - Shortcuts Preserved)\033[0m   \033[96m>> [SAFE INSTALL]\033[0m",
                 "",
-                f"  \033[43;30;1m  2  \033[0m   \033[97;1mRestore 100% Factory Original State\033[0m                      \033[93m<< [FACTORY REVERT]\033[0m",
+                "  \033[43;30;1m  2  \033[0m   \033[97;1mRestore 100% Factory Original State\033[0m                      \033[93m<< [FACTORY REVERT]\033[0m",
                 "",
-                f"  \033[44;97;1m  3  \033[0m   \033[97;1mInstall Smart RTL + Auto-Shield Shortcuts (Opt-in)\033[0m       \033[94m++ [SHIELD & SHORTCUTS]\033[0m",
+                "  \033[44;97;1m  3  \033[0m   \033[97;1mInstall Smart RTL + Auto-Shield Shortcuts (Opt-in)\033[0m       \033[94m++ [SHIELD & SHORTCUTS]\033[0m",
                 "",
-                f"  \033[45;97;1m  4  \033[0m   \033[97;1mSystem Diagnostics & Health Check\033[0m                        \033[95m== [HEALTH CHECK]\033[0m",
+                "  \033[45;97;1m  4  \033[0m   \033[97;1mSystem Diagnostics & Health Check\033[0m                        \033[95m== [HEALTH CHECK]\033[0m",
                 "",
-                f"  \033[41;97;1m  0  \033[0m   \033[97;1mExit Patcher\033[0m                                             \033[90m-- [EXIT]\033[0m",
+                "  \033[41;97;1m  0  \033[0m   \033[97;1mExit Patcher\033[0m                                             \033[90m-- [EXIT]\033[0m",
                 ""
             ]
 
@@ -104,7 +102,8 @@ class InteractiveMenu:
             except (KeyboardInterrupt, EOFError):
                 print(f"\n{CLR_GREEN}Operation cancelled.{CLR_RESET}\n")
                 break
-            except Exception:
+            except Exception as e:
+                logger.debug("Menu choice input error: %s", e)
                 choice = "1"
 
             restart_app = False

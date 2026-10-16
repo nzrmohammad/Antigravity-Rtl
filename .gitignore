@@ -21,6 +21,12 @@ __pycache__/
 node_modules/
 npm-debug.log*
 
+# Testing & build artifacts
+.pytest_cache/
+dist/
+build/
+*.egg-info/
+
 # Temporary & dumps
 *.log
 *.tmp

@@ -8,7 +8,8 @@ Locates Antigravity installation across Windows, macOS, and Linux via processes,
 import os
 import sys
 import subprocess
-from typing import Optional, List, Tuple
+from typing import Optional, List
+from ..constants import logger
 
 
 class PlatformDetector:
@@ -69,8 +70,8 @@ class PlatformDetector:
                             d = os.path.dirname(parts[1])
                             if d not in candidates:
                                 candidates.append(d)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Active process inspection error: %s", e)
 
         # 2. Platform standard installation locations
         if sys.platform == "win32":
@@ -94,10 +95,10 @@ class PlatformDetector:
                             loc, _ = winreg.QueryValueEx(key, "InstallLocation")
                             if loc and os.path.isdir(loc) and loc not in candidates:
                                 candidates.append(loc)
-                    except Exception:
-                        pass
-            except Exception:
-                pass
+                    except Exception as e:
+                        logger.debug("Registry key query skipped: %s", e)
+            except Exception as e:
+                logger.debug("Windows registry open skipped: %s", e)
 
             for prog_env in ["ProgramFiles", "ProgramFiles(x86)", "ProgramW6432"]:
                 pf = os.environ.get(prog_env, "")
@@ -164,3 +165,18 @@ class PlatformDetector:
                 if os.path.isfile(os.path.join(candidate, "app.asar")):
                     return candidate
         return resources_dir
+
+    @classmethod
+    def get_user_data_dir(cls) -> str:
+        """Returns standard cross-platform user data / application configuration directory."""
+        if sys.platform == "win32":
+            return os.environ.get("APPDATA") or os.path.expanduser(r"~\AppData\Roaming")
+        elif sys.platform == "darwin":
+            return os.path.expanduser("~/Library/Application Support")
+        else:
+            return os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config")
+
+    @classmethod
+    def get_antigravity_data_dir(cls) -> str:
+        """Returns the user data folder for Antigravity across platforms."""
+        return os.path.join(cls.get_user_data_dir(), "Antigravity")

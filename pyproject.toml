@@ -1,0 +1,60 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "antigravity-rtl"
+version = "1.1.0"
+description = "Professional bidirectional text direction (RTL/LTR) & offline typography suite for Google Antigravity IDE"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+authors = [
+    { name = "Mohammad", email = "developer@antigravity-rtl.local" }
+]
+keywords = [
+    "antigravity",
+    "rtl",
+    "persian",
+    "arabic",
+    "typography",
+    "asar",
+    "electron",
+    "deepmind"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: User Interfaces",
+    "Topic :: Text Processing :: Linguistic"
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/developer/antigravity-rtl"
+Repository = "https://github.com/developer/antigravity-rtl"
+
+[project.scripts]
+antigravity-rtl = "antigravity_rtl.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/antigravity_rtl"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py38"
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E501", "E402", "W291", "W293"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

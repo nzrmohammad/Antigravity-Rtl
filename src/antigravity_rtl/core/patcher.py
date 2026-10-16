@@ -7,13 +7,14 @@ Coordinates ASAR inspection, backup retention, code injection, and persistent de
 
 import os
 import shutil
-from typing import Tuple, Dict, Any, Optional
+from typing import Tuple, Dict, Any
 
 from .detector import PlatformDetector
 from .process import ProcessManager
 from .asar import AsarArchive
 from .injector import CodeInjector
 from .shield import AutoShieldManager
+from ..constants import logger
 
 
 class AntigravityPatcher:
@@ -38,15 +39,16 @@ class AntigravityPatcher:
         is_running = ProcessManager.is_running()
         return is_patched, is_running
 
-    def patch(self, kill: bool = False, install_shortcuts: bool = False) -> bool:
+    def patch(self, kill: bool = False, install_shortcuts: bool = False, dry_run: bool = False) -> bool:
         """
         Applies Smart RTL patch to target installation.
+        Supports --dry-run simulation without touching on-disk files.
         """
         if not os.path.isfile(self.asar_path):
             print(f"[-] Error: app.asar not found in {self.asar_path}")
             return False
 
-        if kill and ProcessManager.is_running():
+        if not dry_run and kill and ProcessManager.is_running():
             ProcessManager.close()
 
         # 1. Metadata check and pristine backup retention
@@ -66,16 +68,19 @@ class AntigravityPatcher:
 
         if (asar_meta and not asar_meta["is_patched"]) and (is_official_update or not os.path.isfile(self.backup_path)):
             ver_info = f" (v{asar_meta['version_str']})" if asar_meta else ""
-            print(f"[*] Updating factory backup with official pristine build{ver_info}...")
-            try:
-                shutil.copy2(self.asar_path, self.backup_path)
-                print(f"  [OK] Factory backup successfully saved:\n      {self.backup_path}")
-            except Exception as e:
-                print(f"[-] Error creating factory backup: {e}")
-                return False
-            source_asar = self.backup_path
+            if not dry_run:
+                print(f"[*] Updating factory backup with official pristine build{ver_info}...")
+                try:
+                    shutil.copy2(self.asar_path, self.backup_path)
+                    print(f"  [OK] Factory backup successfully saved:\n      {self.backup_path}")
+                except Exception as e:
+                    print(f"[-] Error creating factory backup: {e}")
+                    logger.debug("Backup creation error: %s", e)
+                    return False
+            source_asar = self.backup_path if os.path.isfile(self.backup_path) else self.asar_path
         elif os.path.isfile(self.backup_path):
-            print("  [i] Pristine factory backup already exists.")
+            if not dry_run:
+                print("  [i] Pristine factory backup already exists.")
             source_asar = self.backup_path
         else:
             source_asar = self.asar_path
@@ -119,13 +124,32 @@ class AntigravityPatcher:
                 "install(isSilent = false, isForceRunAfter = false) {" + hook_body
             )
 
+        # Handle Dry-Run Mode
+        if dry_run:
+            print("\n" + "=" * 68)
+            print("[DRY-RUN] Simulating Smart RTL Patch (Zero modifications committed)")
+            print("=" * 68)
+            print(f"  * Target directory: {self.target_dir}")
+            print(f"  * Source ASAR:     {source_asar}")
+            print(f"  * Destination:     {self.asar_path}")
+            print(f"  * Backup target:   {self.backup_path}")
+            print("  * Pending Replacements:")
+            for rel_path, rep_content in replacements.items():
+                print(f"    - {rel_path} ({len(rep_content):,} bytes/chars)")
+            print("=" * 68)
+            print("[DRY-RUN] Dry-run simulation completed successfully.")
+            return True
+
         # 4. Reconstruct ASAR
         print("\n[*] Rebuilding and replacing application package (app.asar)...")
         try:
-            source_archive.patch_files(self.temp_asar, replacements)
+            stats = source_archive.patch_files(self.temp_asar, replacements)
+            for item in stats.get("updated_files", []):
+                print(f"  [+] Updated in archive: {item['path']} ({item['size']:,} bytes)")
             try:
                 shutil.move(self.temp_asar, self.asar_path)
-            except Exception:
+            except Exception as e:
+                logger.debug("Direct move failed, writing stream fallback: %s", e)
                 with open(self.temp_asar, "rb") as tf:
                     data = tf.read()
                 with open(self.asar_path, "r+b") as out:
@@ -163,8 +187,8 @@ class AntigravityPatcher:
             if os.path.exists(self.temp_asar):
                 try:
                     os.remove(self.temp_asar)
-                except Exception:
-                    pass
+                except Exception as ex:
+                    logger.debug("Failed cleaning up temp asar %s: %s", self.temp_asar, ex)
             return False
 
     def restore(self, kill: bool = False) -> bool:
@@ -200,7 +224,8 @@ class AntigravityPatcher:
         try:
             try:
                 shutil.copy2(backup_path, self.asar_path)
-            except Exception:
+            except Exception as ex:
+                logger.debug("shutil.copy2 failed during restore, falling back to direct write: %s", ex)
                 with open(backup_path, "rb") as bf:
                     data = bf.read()
                 with open(self.asar_path, "r+b") as out:
@@ -221,11 +246,12 @@ class AntigravityPatcher:
                 res_patch = os.path.join(self.target_dir, "resources", "rtl-patch")
                 if os.path.isdir(res_patch):
                     shutil.rmtree(res_patch, ignore_errors=True)
-                appdata_patch = os.path.join(os.environ.get("APPDATA", ""), "Antigravity", "rtl-patch")
+                data_dir = PlatformDetector.get_antigravity_data_dir()
+                appdata_patch = os.path.join(data_dir, "rtl-patch")
                 if os.path.isdir(appdata_patch):
                     shutil.rmtree(appdata_patch, ignore_errors=True)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Non-critical cleanup error during restore: %s", e)
 
             if ProcessManager.is_running():
                 live_ok = AutoShieldManager.sync_live_window("restore")
@@ -236,13 +262,15 @@ class AntigravityPatcher:
             return True
         except Exception as e:
             print(f"[-] Restore error: {e}")
+            logger.debug("Restore error exception: %s", e)
             return False
 
     def diagnostics(self) -> Dict[str, Any]:
         """Gathers system health and telemetry diagnostics."""
         is_patched, is_running = self.get_status()
-        port_file = os.path.join(os.environ.get("APPDATA", ""), "Antigravity", "DevToolsActivePort")
-        patch_dir_ok = os.path.isdir(os.path.join(os.environ.get("APPDATA", ""), "Antigravity", "rtl-patch"))
+        data_dir = PlatformDetector.get_antigravity_data_dir()
+        port_file = os.path.join(data_dir, "DevToolsActivePort")
+        patch_dir_ok = os.path.isdir(os.path.join(data_dir, "rtl-patch"))
         shield_ok = os.path.isfile(os.path.join(self.target_dir, "AntigravityLauncher.exe"))
 
         return {

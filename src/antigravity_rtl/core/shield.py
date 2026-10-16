@@ -10,7 +10,8 @@ import sys
 import time
 import shutil
 import subprocess
-from typing import Optional
+from .detector import PlatformDetector
+from ..constants import logger
 
 
 class AutoShieldManager:
@@ -31,7 +32,8 @@ class AutoShieldManager:
         try:
             shutil.copy2(launcher_path, dest_launcher)
             target_exe = dest_launcher
-        except Exception:
+        except Exception as e:
+            logger.debug("Failed copying launcher to %s: %s", dest_launcher, e)
             target_exe = launcher_path
 
         icon_source = os.path.join(target_dir, "Antigravity.exe")
@@ -66,8 +68,8 @@ class AutoShieldManager:
         try:
             subprocess.run(['powershell', '-NoProfile', '-Command', ps_code], capture_output=True)
             print("  [OK] Auto-Shield launcher installed & shortcuts protected.")
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("PowerShell shortcut setup error: %s", e)
 
     @classmethod
     def restore_shortcuts(cls, target_dir: str):
@@ -100,8 +102,8 @@ class AutoShieldManager:
         try:
             subprocess.run(['powershell', '-NoProfile', '-Command', ps_code], capture_output=True)
             print("  [OK] Desktop shortcuts restored to original Antigravity.exe.")
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("PowerShell shortcut restore error: %s", e)
 
     @classmethod
     def deploy_permanent_engine(cls, target_dir: str, install_shortcuts: bool = False):
@@ -125,7 +127,7 @@ class AutoShieldManager:
         ]
 
         target_dirs = [
-            os.path.join(os.environ.get("APPDATA", ""), "Antigravity", "rtl-patch"),
+            os.path.join(PlatformDetector.get_antigravity_data_dir(), "rtl-patch"),
             os.path.join(target_dir, "resources", "rtl-patch")
         ]
 
@@ -139,8 +141,8 @@ class AutoShieldManager:
                 dest_pkg = os.path.join(tdir, "antigravity_rtl")
                 if os.path.isdir(pkg_dir):
                     shutil.copytree(pkg_dir, dest_pkg, dirs_exist_ok=True)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Failed deploying to %s: %s", tdir, e)
 
         launcher_src = os.path.join(src_dir, "AntigravityLauncher.exe")
         if not os.path.isfile(launcher_src):
@@ -152,7 +154,6 @@ class AutoShieldManager:
     @classmethod
     def wait_for_update_then_patch(cls, patcher_instance):
         """Watches for background updater execution and reapplies patch once update finishes."""
-        target_dir = patcher_instance.target_dir
         asar_path = patcher_instance.asar_path
         init_mtime = os.path.getmtime(asar_path) if os.path.isfile(asar_path) else 0
 
@@ -172,8 +173,8 @@ class AutoShieldManager:
                     curr_mtime = os.path.getmtime(asar_path)
                     if curr_mtime != init_mtime:
                         break
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Error while polling updater tasks: %s", e)
 
         time.sleep(3)
         patcher_instance.patch(kill=False, install_shortcuts=False)
@@ -182,8 +183,7 @@ class AutoShieldManager:
     def sync_live_window(cls, action: str = "restore") -> bool:
         """DevTools CDP live evaluation helper."""
         try:
-            appdata = os.environ.get("APPDATA", "")
-            port_file = os.path.join(appdata, "Antigravity", "DevToolsActivePort")
+            port_file = os.path.join(PlatformDetector.get_antigravity_data_dir(), "DevToolsActivePort")
             if not os.path.isfile(port_file):
                 return False
 
@@ -252,7 +252,9 @@ class AutoShieldManager:
                 for page in pages:
                     asyncio.run(eval_page(page["webSocketDebuggerUrl"], js_code))
                 return True
-            except Exception:
+            except Exception as e:
+                logger.debug("CDP websocket evaluation failed: %s", e)
                 return False
-        except Exception:
+        except Exception as e:
+            logger.debug("sync_live_window failed: %s", e)
             return False
