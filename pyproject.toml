@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "antigravity-rtl"
-version = "1.1.0"
+version = "1.2.0"
 description = "Professional bidirectional text direction (RTL/LTR) & offline typography suite for Google Antigravity IDE"
 readme = "README.md"
 requires-python = ">=3.8"

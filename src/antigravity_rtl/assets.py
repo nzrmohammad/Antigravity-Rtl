@@ -573,7 +573,7 @@ body:not(.ag-rtl-disabled) [data-testid="conversation-row-sidebar"][dir="ltr"] .
 }
 
 /* =========================================================
-   تراز دوطرفه هوشمند متن (Smart Justify Text Option)
+   Smart Paragraph Text Justification (Natural Edge Anchoring)
    ========================================================= */
 body.ag-text-justify:not(.ag-rtl-disabled) [dir="rtl"] p,
 body.ag-text-justify:not(.ag-rtl-disabled) p[dir="rtl"],

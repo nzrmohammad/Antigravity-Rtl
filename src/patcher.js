@@ -575,7 +575,7 @@ body:not(.ag-rtl-disabled) [data-testid="conversation-row-sidebar"][dir="ltr"] .
 }
 
 /* =========================================================
-   تراز دوطرفه هوشمند متن (Smart Justify Text Option)
+   Smart Paragraph Text Justification (Natural Edge Anchoring)
    ========================================================= */
 body.ag-text-justify:not(.ag-rtl-disabled) [dir="rtl"] p,
 body.ag-text-justify:not(.ag-rtl-disabled) p[dir="rtl"],
@@ -1313,6 +1313,60 @@ try {
         }
     }
 
+    function isFontBundled(fontName) {
+        if (!fontName) return false;
+        const bundled = [
+            'Vazirmatn', 'Inter', 'JetBrains Mono', 'Arad',
+            'B Nazanin', 'BNazanin', 'Shabnam', 'Sahel', 'Samim', 'System'
+        ];
+        return bundled.includes(fontName);
+    }
+
+    function isFontAvailable(fontName) {
+        if (!fontName) return false;
+        if (isFontBundled(fontName)) return true;
+
+        const candidates = [fontName];
+        if (fontName === 'IRANSans') candidates.push('IRANSansX', 'IRAN Sans', 'IranSans');
+        if (fontName === 'IRANYekan') candidates.push('IRANYekanX', 'IRAN Yekan', 'IranYekan');
+        if (fontName === 'Dana') candidates.push('dana', 'DanaFaNum');
+        if (fontName === 'Fira Code') candidates.push('FiraCode', 'FiraCode-Regular');
+        if (fontName === 'Cascadia Code') candidates.push('Cascadia Mono');
+
+        try {
+            const testStr = "abcdefghijklmnopqrstuvwxyz0123456789\\u0627\\u0644\\u0641\\u0628\\u0627";
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return false;
+
+            ctx.font = "72px monospace";
+            const baseMono = ctx.measureText(testStr).width;
+            ctx.font = "72px sans-serif";
+            const baseSans = ctx.measureText(testStr).width;
+
+            for (let i = 0; i < candidates.length; i++) {
+                const name = candidates[i];
+                ctx.font = \`72px "\${name}", monospace\`;
+                const testMono = ctx.measureText(testStr).width;
+                ctx.font = \`72px "\${name}", sans-serif\`;
+                const testSans = ctx.measureText(testStr).width;
+
+                if ((testMono !== baseMono) || (testSans !== baseSans)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch(e) {
+            return false;
+        }
+    }
+
+    function getFontStatus(fontName) {
+        if (!fontName) return 'missing';
+        if (isFontBundled(fontName)) return 'bundled';
+        return isFontAvailable(fontName) ? 'installed' : 'missing';
+    }
+
     function applySettings(s) {
         if (!document.documentElement) return;
         const root = document.documentElement;
@@ -1573,7 +1627,7 @@ try {
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span style="font-size: 15px; font-weight: 700; color: #fff; letter-spacing: 0.2px;">Appearance & Smart RTL</span>
                     </div>
-                    <span style="font-size: 11px; padding: 2px 8px; background: rgba(59, 130, 246, 0.22); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 5px; font-weight: 600;">v1.1</span>
+                    <span style="font-size: 11px; padding: 2px 8px; background: rgba(59, 130, 246, 0.22); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 5px; font-weight: 600;">v1.2</span>
                 </div>
 
                 <!-- RTL Toggle -->
@@ -1611,7 +1665,7 @@ try {
                             <span>Justify Text</span>
                             <span id="ag-justify-status-badge" style="font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600; background: \${currentSettings.justifyText ? 'rgba(34, 197, 94, 0.22)' : 'rgba(161, 161, 170, 0.2)'}; color: \${currentSettings.justifyText ? '#4ade80' : '#a1a1aa'};">\${currentSettings.justifyText ? 'Enabled' : 'Disabled'}</span>
                         </div>
-                        <div style="font-size: 11.5px; color: #a1a1aa; margin-top: 3px;">تراز دوطرفه متن پاراگراف‌ها با حفظ خط آخر</div>
+                        <div style="font-size: 11.5px; color: #a1a1aa; margin-top: 3px;">Smart paragraph justification with natural edge anchoring</div>
                     </div>
                     <div id="ag-toggle-justify" style="width: 46px; height: 26px; background: \${currentSettings.justifyText ? '#3b82f6' : '#3f3f46'}; border-radius: 13px; position: relative; cursor: pointer; transition: background .2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); flex-shrink: 0;">
                         <div id="ag-justify-knob" style="position: absolute; width: 20px; height: 20px; background: white; border-radius: 50%; top: 3px; left: \${currentSettings.justifyText ? '22px' : '4px'}; transition: left .2s; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
@@ -1620,10 +1674,13 @@ try {
 
                 <!-- Font Family Selection -->
                 <div style="margin-bottom: 14px;">
-                    <label style="display: block; font-size: 13px; font-weight: 600; color: #e4e4e7; margin-bottom: 7px;">Font Family:</label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
+                        <label style="font-size: 13px; font-weight: 600; color: #e4e4e7;">Font Family:</label>
+                        <span id="ag-font-family-badge" style="font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600;"></span>
+                    </div>
                     <select id="ag-font-family-select" style="width: 100%; background: #27272a; color: #f4f4f5; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; padding: 7px 11px; font-size: 13px; font-weight: 500; outline: none; font-family: inherit; cursor: pointer; transition: border-color .15s;">
-                        <option value="Vazirmatn" \${currentSettings.fontFamily === 'Vazirmatn' ? 'selected' : ''}>Vazirmatn (Default)</option>
-                        <option value="Inter" \${currentSettings.fontFamily === 'Inter' ? 'selected' : ''}>Inter (English / Clean)</option>
+                        <option value="Vazirmatn" \${currentSettings.fontFamily === 'Vazirmatn' ? 'selected' : ''}>Vazirmatn</option>
+                        <option value="Inter" \${currentSettings.fontFamily === 'Inter' ? 'selected' : ''}>Inter</option>
                         <option value="IRANSans" \${currentSettings.fontFamily === 'IRANSans' ? 'selected' : ''}>IRANSans</option>
                         <option value="IRANYekan" \${currentSettings.fontFamily === 'IRANYekan' ? 'selected' : ''}>IRANYekan</option>
                         <option value="Dana" \${currentSettings.fontFamily === 'Dana' ? 'selected' : ''}>Dana</option>
@@ -1643,9 +1700,12 @@ try {
 
                 <!-- Code & Terminal Font Selection -->
                 <div style="margin-bottom: 14px;">
-                    <label style="display: block; font-size: 13px; font-weight: 600; color: #e4e4e7; margin-bottom: 7px;">Code & Terminal Font:</label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
+                        <label style="font-size: 13px; font-weight: 600; color: #e4e4e7;">Code & Terminal Font:</label>
+                        <span id="ag-code-font-badge" style="font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600;"></span>
+                    </div>
                     <select id="ag-code-font-select" style="width: 100%; background: #27272a; color: #f4f4f5; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; padding: 7px 11px; font-size: 13px; font-weight: 500; outline: none; font-family: inherit; cursor: pointer; transition: border-color .15s;">
-                        <option value="JetBrains Mono" \${(currentSettings.codeFont === 'JetBrains Mono' || currentSettings.codeFont === 'default') ? 'selected' : ''}>JetBrains Mono (Default / Bundled)</option>
+                        <option value="JetBrains Mono" \${(currentSettings.codeFont === 'JetBrains Mono' || currentSettings.codeFont === 'default') ? 'selected' : ''}>JetBrains Mono</option>
                         <option value="Consolas" \${currentSettings.codeFont === 'Consolas' ? 'selected' : ''}>Consolas</option>
                         <option value="Fira Code" \${currentSettings.codeFont === 'Fira Code' ? 'selected' : ''}>Fira Code</option>
                         <option value="Cascadia Code" \${currentSettings.codeFont === 'Cascadia Code' ? 'selected' : ''}>Cascadia Code</option>
@@ -1745,8 +1805,90 @@ try {
             };
 
             const fontSelect = popoverInstance.querySelector('#ag-font-family-select');
+            const fontBadge = popoverInstance.querySelector('#ag-font-family-badge');
             const customContainer = popoverInstance.querySelector('#ag-custom-font-container');
             const customInput = popoverInstance.querySelector('#ag-custom-font-input');
+
+            const codeSelect = popoverInstance.querySelector('#ag-code-font-select');
+            const codeBadge = popoverInstance.querySelector('#ag-code-font-badge');
+            const customCodeContainer = popoverInstance.querySelector('#ag-custom-code-font-container');
+            const customCodeInput = popoverInstance.querySelector('#ag-custom-code-font-input');
+
+            const FONT_BASE_LABELS = {
+                'Vazirmatn': 'Vazirmatn (Default)',
+                'Inter': 'Inter',
+                'IRANSans': 'IRANSans',
+                'IRANYekan': 'IRANYekan',
+                'Dana': 'Dana',
+                'BNazanin': 'B Nazanin',
+                'Arad': 'Arad',
+                'Shabnam': 'Shabnam',
+                'Sahel': 'Sahel',
+                'Samim': 'Samim',
+                'Tahoma': 'Tahoma',
+                'System': 'System Font',
+                'Custom': 'Custom Font...'
+            };
+
+            const CODE_FONT_BASE_LABELS = {
+                'JetBrains Mono': 'JetBrains Mono (Default)',
+                'Consolas': 'Consolas',
+                'Fira Code': 'Fira Code',
+                'Cascadia Code': 'Cascadia Code',
+                'Vazirmatn': 'Vazir Code',
+                'Custom': 'Custom Monospace...'
+            };
+
+            function updateOptionLabels(selectEl, labelMap) {
+                if (!selectEl) return;
+                Array.from(selectEl.options).forEach(opt => {
+                    const val = opt.value;
+                    if (val === 'Custom') {
+                        opt.textContent = '⚙️ ' + (labelMap[val] || val);
+                        return;
+                    }
+                    const status = getFontStatus(val);
+                    const baseLabel = labelMap[val] || val;
+                    if (status === 'bundled') {
+                        opt.textContent = '● ' + baseLabel + ' (Bundled)';
+                    } else if (status === 'installed') {
+                        opt.textContent = '● ' + baseLabel + ' (Installed)';
+                    } else {
+                        opt.textContent = '○ ' + baseLabel + ' (Not installed)';
+                    }
+                });
+            }
+
+            function updateFontBadge(badgeEl, fontVal, customVal) {
+                if (!badgeEl) return;
+                const target = (fontVal === 'Custom') ? (customVal || '').trim() : fontVal;
+                if (!target) {
+                    badgeEl.style.background = 'rgba(161, 161, 170, 0.2)';
+                    badgeEl.style.color = '#a1a1aa';
+                    badgeEl.textContent = '○ None specified';
+                    return;
+                }
+                const status = getFontStatus(target);
+                if (status === 'bundled') {
+                    badgeEl.style.background = 'rgba(34, 197, 94, 0.22)';
+                    badgeEl.style.color = '#4ade80';
+                    badgeEl.textContent = '● Bundled (Ready)';
+                } else if (status === 'installed') {
+                    badgeEl.style.background = 'rgba(59, 130, 246, 0.22)';
+                    badgeEl.style.color = '#60a5fa';
+                    badgeEl.textContent = '● Installed on OS';
+                } else {
+                    badgeEl.style.background = 'rgba(239, 68, 68, 0.2)';
+                    badgeEl.style.color = '#f87171';
+                    badgeEl.textContent = '○ Not installed (Fallback)';
+                }
+            }
+
+            updateOptionLabels(fontSelect, FONT_BASE_LABELS);
+            updateOptionLabels(codeSelect, CODE_FONT_BASE_LABELS);
+            updateFontBadge(fontBadge, currentSettings.fontFamily, currentSettings.customFont);
+            updateFontBadge(codeBadge, currentSettings.codeFont, currentSettings.customCodeFont);
+
             fontSelect.onchange = () => {
                 currentSettings.fontFamily = fontSelect.value;
                 if (fontSelect.value === 'Custom') {
@@ -1755,19 +1897,18 @@ try {
                 } else {
                     customContainer.style.display = 'none';
                 }
+                updateFontBadge(fontBadge, currentSettings.fontFamily, currentSettings.customFont);
                 applySettings(currentSettings);
                 saveSettings(currentSettings);
             };
 
             customInput.oninput = () => {
                 currentSettings.customFont = customInput.value.trim();
+                updateFontBadge(fontBadge, currentSettings.fontFamily, currentSettings.customFont);
                 applySettings(currentSettings);
                 saveSettings(currentSettings);
             };
 
-            const codeSelect = popoverInstance.querySelector('#ag-code-font-select');
-            const customCodeContainer = popoverInstance.querySelector('#ag-custom-code-font-container');
-            const customCodeInput = popoverInstance.querySelector('#ag-custom-code-font-input');
             codeSelect.onchange = () => {
                 currentSettings.codeFont = codeSelect.value;
                 if (codeSelect.value === 'Custom') {
@@ -1776,12 +1917,14 @@ try {
                 } else {
                     customCodeContainer.style.display = 'none';
                 }
+                updateFontBadge(codeBadge, currentSettings.codeFont, currentSettings.customCodeFont);
                 applySettings(currentSettings);
                 saveSettings(currentSettings);
             };
 
             customCodeInput.oninput = () => {
                 currentSettings.customCodeFont = customCodeInput.value.trim();
+                updateFontBadge(codeBadge, currentSettings.codeFont, currentSettings.customCodeFont);
                 applySettings(currentSettings);
                 saveSettings(currentSettings);
             };

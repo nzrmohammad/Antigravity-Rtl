@@ -6,7 +6,7 @@ Antigravity RTL - Global Constants & Terminal Color Definitions
 
 import logging
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 APP_NAME = "Smart RTL & Modern Appearance Engine for Antigravity"
 
 # Standard Library Logger for Antigravity RTL

@@ -110,6 +110,12 @@ class TestParity(unittest.TestCase):
             "conversation-row-sidebar",
             "detectSmartDirection",
             "applySmartDirectionToElement",
+            "isFontAvailable",
+            "getFontStatus",
+            "ag-font-family-badge",
+            "ag-code-font-badge",
+            "Bundled (Ready)",
+            "Installed on OS",
         ]
         for feat in essential_features:
             self.assertIn(feat, py_injection, f"Feature '{feat}' missing in Python CodeInjector")

@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Version: v1.1.0](https://img.shields.io/badge/Version-v1.1.0-blue.svg?style=for-the-badge)](pyproject.toml)
+[![Version: v1.2.0](https://img.shields.io/badge/Version-v1.2.0-blue.svg?style=for-the-badge)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 [![Platform: Windows | macOS | Linux](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-0078D6?style=for-the-badge&logo=windows)](https://microsoft.com)
 [![Tested on: Antigravity v2.24.0+](https://img.shields.io/badge/Antigravity-v2.24.0+%20Verified-00C853?style=for-the-badge&logo=google)](https://deepmind.google)
@@ -83,14 +83,13 @@ Popular commercial Persian fonts such as **IRANSans**, **IRANYekan**, and **Dana
 
 ### 💻 Dedicated Monospace Code & Terminal Font Selector
 - Enforces strict LTR technical isolation while allowing developers to independently customize the monospace font used in syntax-highlighted code blocks, tool calls, and terminal buffers:
-  - **Default Monospace** (System default monospace)
+  - **JetBrains Mono** (bundled offline OFL / default developer font)
   - **Consolas** (Windows standard developer monospace)
   - **Fira Code** (renders if installed on system; supports programming ligatures)
-  - **JetBrains Mono** (renders if installed on system)
   - **Cascadia Code** (Windows built-in / Terminal font)
   - **Vazir Code** (bundled bilingual Persian/English monospace)
   - **Custom Monospace...** (e.g., `Hack`, `Source Code Pro`, `Inconsolata`)
-  *(Note: Third-party developer fonts like Fira Code or JetBrains Mono utilize your locally installed OS fonts, gracefully falling back to Consolas if not installed.)*
+  *(Note: Built-in options indicate availability with `● Bundled`, `● Installed`, or `○ Not installed`.)*
 
 ### 🛡️ Ironclad Technical Isolation
 - **Preserved Coding Environments**: Strict LTR isolation enforced on:
@@ -105,7 +104,9 @@ Popular commercial Persian fonts such as **IRANSans**, **IRANYekan**, and **Dana
 - **Real-Time Customization**:
   - Toggle Smart RTL on/off in real-time
   - Toggle Persian digits (۰-۹) vs Latin digits (0-9)
-  - Select between Vazirmatn, Arad, B Nazanin, Shabnam, Sahel, Samim, Tahoma, System, or Custom Font
+  - Toggle Smart Paragraph Justify (`Justify Text`) with natural edge anchoring
+  - Live Font Availability Indicators: View immediately which fonts are `● Bundled`, `● Installed`, or `○ Not installed`, with dynamic live feedback badges for custom typed fonts
+  - Select between Vazirmatn, Inter, IRANSans, IRANYekan, Dana, Arad, B Nazanin, Shabnam, Sahel, Samim, Tahoma, System, or Custom Font
   - Customize code block monospace typography independently
   - Adjust typography font size (`12px` – `24px`) with instant visual feedback
   - Adjust line height (`Compact 1.5`, `Normal 1.75`, `Relaxed 2.0`)
@@ -309,20 +310,55 @@ Simply press `Enter` (or type `1`) to apply the patch.
 
 ---
 
-## 🔍 دقیقاً چه فایل‌هایی تغییر می‌کنند؟ (Modification & Security Audit Manifest)
+## 🔄 Does the Patch Apply Automatically After Official IDE Updates?
 
-چون این ابزار پکیج داخلی نرم‌افزار را تغییر می‌دهد، شفافیت کامل عملکرد و امنیت فایل‌های کاربر اولویت بنیادین است:
+A common question is how the patch behaves when Google Antigravity IDE installs an official update. The system offers two clean modes depending on your workflow:
 
-1. **فایل پشتیبان کارخانه (`resources/app.asar.original_backup`)**:
-   قبل از هرگونه ویرایش، یک کپی ۱۰۰٪ دست‌نخورده از فایل اصلی برنامه در پوشه `resources` ذخیره می‌شود. این فایل هرگز بازنویسی مجدد نمی‌شود تا همیشه بازگشت به نسخه اولیه ممکن باشد.
-2. **کادر تزریق در اسکریپت پیش‌بارگذاری (`dist/preload.js` داخل ASAR)**:
-   تنها فایل اصلی که تغییر می‌یابد این اسکریپت است؛ کدهای سبک آبزرور، استایل‌های آفلاین CSS و دکمه منوی Appearance در انتهای این فایل قرار می‌گیرند.
-3. **هوک‌های حفظ پچ در آپدیت خودکار (اختیاری در ASAR)**:
-   در فایل‌های `dist/updater.js` و `node_modules/electron-updater/...` تنها چند خط هوک غیرتخریب‌کننده به متد `quitAndInstall()` اضافه می‌شود تا هنگام انتشار آپدیت رسمی توسط گوگل، پچ در پس‌زمینه دوباره اعمال شود.
-4. **پوشه محلی اسکریپت‌های پچ (`%APPDATA%/Antigravity/rtl-patch`)**:
-   روی ویندوز (یا `~/.config/Antigravity` در لینوکس و `~/Library/Application Support/Antigravity` در مک)، یک کپی از فایل‌های پچ و فونت‌ها برای هیلینگ آپدیت ذخیره می‌شود که با اجرای دستور `--restore` کاملاً پاک‌سازی می‌شود.
-5. **شورت‌کات‌ها و لانچر (غیرفعال در حالت پیش‌فرض)**:
-   شورت‌کات‌های اصلی دسکتاپ به هیچ وجه تغییر نمی‌کنند مگر آنکه کاربر صریحاً گزینه `--install-shortcuts` را انتخاب کند.
+### 1. Default Safe Mode (Manual Re-Patch in 2 Seconds)
+* **What happens during an official update?**
+  When Antigravity IDE auto-updates, the Electron installer completely replaces the internal `resources/app.asar` archive with a fresh, stock binary. Consequently, the injected RTL scripts are replaced by the factory files.
+* **Are your customizations lost?**
+  **No.** All your personalized settings (chosen Persian and monospace code fonts, font size, line spacing, Persian digits, and Justify alignment) are permanently stored in your OS user profile via `localStorage`. They are never wiped by official application updates.
+* **How to re-enable:**
+  Simply re-run the patcher once after the update completes:
+  ```bash
+  python -m antigravity_rtl.cli
+  ```
+  or double-click `patch.bat`. The engine verifies the new version, creates a fresh pristine backup, and re-applies the full RTL suite in under 2 seconds.
+
+### 2. Auto-Shield Mode (100% Automated Background Self-Healing)
+If you prefer zero maintenance and want the patch to **automatically survive every update without running commands manually**, enable **Auto-Shield**:
+
+* **How to enable:**
+  Run the CLI with `--install-shortcuts` (or select Option `3` in the interactive menu):
+  ```bash
+  python -m antigravity_rtl.cli --install-shortcuts
+  ```
+* **How it works:**
+  1. **Persistent Engine Deployment:** The patcher core, scripts, and font assets are mirrored to your user profile directory (`%APPDATA%\Antigravity\rtl-patch`), keeping them safe from application uninstalls or version upgrades.
+  2. **Lightweight Native C++ Launcher:** A zero-window binary (`AntigravityLauncher.exe`) is placed in the installation directory, and your Desktop / Start Menu shortcuts are cleanly redirected to it.
+  3. **Silent Self-Healing on Launch:** Whenever you launch Antigravity, the launcher instantly checks if an official update has replaced `app.asar`. If an unpatched binary is detected, it quietly applies the patch in the background without terminal popups or interruption, then starts the IDE with your full RTL typography ready to go.
+
+---
+
+## 🔍 Modification & Security Audit Manifest
+
+Because this tool patches internal application packages, total operational transparency and user data integrity are core design priorities. Below is an exhaustive audit of every file read, created, or modified during the patching lifecycle:
+
+1. **Factory Pristine Backup (`resources/app.asar.original_backup`)**:
+   Prior to modifying any bytes on disk, an untouched, bit-for-bit identical copy of the official factory `app.asar` archive is created inside the application's `resources` directory. This backup file is never overwritten by subsequent patch runs, guaranteeing a foolproof and complete one-click restoration path back to the stock state at any time via `--restore`.
+
+2. **Preload Script Client Injection (`dist/preload.js` inside ASAR)**:
+   This is the primary runtime script modified within the ASAR archive. The lightweight Smart RTL observer, bundled offline WOFF2 base64 CSS, and the glassmorphism `Appearance` toolbar button are appended to the end of this script in a sandbox-isolated closure (`/* __ANTIGRAVITY_RTL_INJECTED__ */`).
+
+3. **Background Auto-Shield Updater Hooks (inside ASAR)**:
+   To ensure your typography and RTL configuration survive official Google Antigravity IDE auto-updates, non-destructive hooks are injected into `dist/updater.js` and `node_modules/electron-updater/out/BaseUpdater.js` / `NsisUpdater.js` around the `quitAndInstall()` lifecycle method. When an official update installs, a background helper quietly reapplies the patch to the new version once the installer completes.
+
+4. **User-Data Engine Storage (`%APPDATA%/Antigravity/rtl-patch`)**:
+   On Windows (`%APPDATA%\Antigravity\rtl-patch`), macOS (`~/Library/Application Support/Antigravity/rtl-patch`), and Linux (`~/.config/Antigravity/rtl-patch`), a local cached copy of the patcher engine and bundled fonts is deployed for automatic background re-patching. Running `--restore` purges this directory completely.
+
+5. **Desktop & Start Menu Shortcuts (Preserved by Default)**:
+   By default, existing application shortcuts remain 100% untouched. Only when explicitly opted in via the `--install-shortcuts` (or `-s`) flag does the patcher redirect shortcuts to `AntigravityLauncher.exe` to intercept IDE launches and protect against unannounced update reversions.
 
 ---
 
