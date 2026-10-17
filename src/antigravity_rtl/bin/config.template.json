@@ -23,6 +23,9 @@
   "diagnostics": {
     "agent_ip_probe": false
   },
+  "ui": {
+    "load_notify": "none"
+  },
   "_version": "2.4",
   "_comment": "Antigravity-Proxy Configuration",
   "log_level": "info",

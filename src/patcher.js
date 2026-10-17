@@ -1478,16 +1478,17 @@ try {
                 .then(() => {
                     clearTimeout(timer);
                     const latency = Date.now() - start;
-                    resolve({ ok: true, latency: latency, msg: 'Port is responding (' + latency + 'ms)' });
+                    resolve({ ok: true, latency: latency, msg: 'Port ' + targetPort + ' is open & reachable (' + latency + 'ms)' });
                 })
                 .catch((err) => {
                     clearTimeout(timer);
                     const latency = Date.now() - start;
                     if (err.name === 'AbortError') {
-                        resolve({ ok: false, latency: latency, msg: 'Connection timed out' });
+                        resolve({ ok: false, latency: latency, msg: 'Port ' + targetPort + ' timed out (' + timeoutMs + 'ms)' });
                     } else {
-                        resolve({ ok: false, latency: latency, msg: 'Connection refused on port ' + targetPort });
+                        resolve({ ok: false, latency: latency, msg: 'Connection refused on port ' + targetPort + ' (offline)' });
                     }
+                });
         });
     }
 
@@ -2169,50 +2170,92 @@ try {
                 };
             }
 
+            let testResetTimer = null;
             async function runConnectionTest() {
                 if (!testBtn || !testResult || !testMsg) return;
                 const h = (hostInput ? hostInput.value : currentSettings.proxyHost) || '127.0.0.1';
                 const p = parseInt(portInput ? portInput.value : currentSettings.proxyPort) || 10808;
 
-                testBtn.style.opacity = '0.5';
+                if (testResetTimer) clearTimeout(testResetTimer);
+
+                testBtn.style.opacity = '0.7';
                 testBtn.style.pointerEvents = 'none';
+                testBtn.style.background = 'rgba(59, 130, 246, 0.2)';
+                testBtn.style.borderColor = 'rgba(59, 130, 246, 0.45)';
+                testBtn.style.color = '#93c5fd';
                 testBtn.innerHTML = '<span>⏳ Checking...</span>';
+
                 testResult.style.display = 'flex';
                 testResult.style.background = 'rgba(59, 130, 246, 0.12)';
                 testResult.style.border = '1px solid rgba(59, 130, 246, 0.3)';
                 testMsg.style.color = '#93c5fd';
                 testMsg.textContent = 'Connecting to ' + h + ':' + p + '...';
-                testLatency.textContent = '';
+                testLatency.style.color = '#93c5fd';
+                testLatency.textContent = '...';
 
                 try {
+                    const testStartTime = Date.now();
                     const res = await testProxyConnection(h, p, currentSettings.proxyType, 2000);
+                    const elapsed = Date.now() - testStartTime;
+                    if (elapsed < 350) {
+                        await new Promise(r => setTimeout(r, 350 - elapsed));
+                    }
+
                     testResult.style.display = 'flex';
                     if (res.ok) {
+                        testBtn.innerHTML = '<span>✅ Active</span>';
+                        testBtn.style.background = 'rgba(34, 197, 94, 0.25)';
+                        testBtn.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                        testBtn.style.color = '#4ade80';
+
                         testResult.style.background = 'rgba(34, 197, 94, 0.15)';
                         testResult.style.border = '1px solid rgba(34, 197, 94, 0.35)';
                         testMsg.style.color = '#4ade80';
                         testMsg.textContent = '● ' + res.msg;
                         testLatency.style.color = '#86efac';
                         testLatency.textContent = res.latency + 'ms';
+
+                        showRTLToast('✅ Proxy Shield: Port ' + p + ' is reachable (' + res.latency + 'ms)');
                     } else {
+                        testBtn.innerHTML = '<span>❌ Offline</span>';
+                        testBtn.style.background = 'rgba(239, 68, 68, 0.25)';
+                        testBtn.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                        testBtn.style.color = '#f87171';
+
                         testResult.style.background = 'rgba(239, 68, 68, 0.15)';
                         testResult.style.border = '1px solid rgba(239, 68, 68, 0.35)';
                         testMsg.style.color = '#f87171';
                         testMsg.textContent = '○ ' + res.msg;
                         testLatency.style.color = '#fca5a5';
                         testLatency.textContent = 'offline';
+
+                        showRTLToast('❌ Proxy Shield: Port ' + p + ' is unreachable');
                     }
                 } catch(err) {
+                    testBtn.innerHTML = '<span>❌ Error</span>';
+                    testBtn.style.background = 'rgba(239, 68, 68, 0.25)';
+                    testBtn.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                    testBtn.style.color = '#f87171';
+
                     testResult.style.display = 'flex';
                     testResult.style.background = 'rgba(239, 68, 68, 0.15)';
                     testResult.style.border = '1px solid rgba(239, 68, 68, 0.35)';
                     testMsg.style.color = '#f87171';
                     testMsg.textContent = '○ Error: ' + (err.message || 'Check failed');
                     testLatency.textContent = '';
+
+                    showRTLToast('❌ Proxy Error: ' + (err.message || 'Check failed'));
                 } finally {
-                    testBtn.style.opacity = '1';
-                    testBtn.style.pointerEvents = 'auto';
-                    testBtn.innerHTML = '<span>⚡ Test</span>';
+                    testResetTimer = setTimeout(() => {
+                        if (testBtn) {
+                            testBtn.style.opacity = '1';
+                            testBtn.style.pointerEvents = 'auto';
+                            testBtn.style.background = 'rgba(59, 130, 246, 0.2)';
+                            testBtn.style.borderColor = 'rgba(59, 130, 246, 0.45)';
+                            testBtn.style.color = '#60a5fa';
+                            testBtn.innerHTML = '<span>⚡ Test</span>';
+                        }
+                    }, 2200);
                 }
             }
 

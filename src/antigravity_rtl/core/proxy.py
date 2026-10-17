@@ -280,6 +280,12 @@ class ProxyManager:
         cfg["updates"]["allow_insecure_mirrors"] = False
         cfg["updates"]["mirrors"] = []
 
+        # UI notification control (defaults to 'none' for silent background operation)
+        if "ui" not in cfg or not isinstance(cfg["ui"], dict):
+            cfg["ui"] = {}
+        if "load_notify" not in cfg["ui"]:
+            cfg["ui"]["load_notify"] = "none"
+
         cfg["child_injection"] = True
         cfg["proxy"] = {
             "type": (proxy_type or cls.DEFAULT_TYPE).lower().strip(),

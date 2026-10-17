@@ -9,10 +9,10 @@ This directory contains verified native binaries and configuration templates use
 | **Binary Filename** | `version.dll` |
 | **Target Architecture** | Windows x86_64 (64-bit) |
 | **Upstream Project** | [yuaotian/antigravity-proxy](https://github.com/yuaotian/antigravity-proxy) |
-| **Upstream Release** | v2.4 (Official Release Build) |
+| **Upstream Release** | v2.4 (Official Release Build - English Localized) |
 | **Original Upstream Author** | yuaotian |
 | **License** | [MIT License](https://github.com/yuaotian/antigravity-proxy/blob/main/LICENSE) |
-| **SHA-256 Checksum** | `40f037232a180da8dff7611021270549fcc4e208580d8bf0f70bc9975f871b5f` |
+| **SHA-256 Checksum** | `e7b991d65611cac615d756d6be4f55f0e3856a0d37e98cc8fb4a19ebc655e7cc` |
 | **File Size** | 632,320 bytes |
 
 ---

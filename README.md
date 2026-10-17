@@ -50,6 +50,8 @@ Engineered for performance and resilience, it features a modular Object-Oriented
 - [🛡️ Anti-Sanction & Proxy Shield Guide](#-anti-sanction--proxy-shield-bypass-regional-restrictions--400403-errors)
   - [The Problem: Geo-Blocking & Child Process Bypassing](#the-problem-geo-blocking--child-process-bypassing)
   - [The Solution: Native Process-Level DLL Proxying](#the-solution-native-process-level-dll-proxying)
+  - [Key Differences from Upstream & Security Hardening](#-key-differences-from-upstream--security-hardening)
+  - [What Happens During Updates? (IDE & Proxy Updates)](#-what-happens-during-updates-ide--proxy-updates)
   - [Step-by-Step Usage Guide (In-App GUI, Terminal Menu, CLI)](#step-by-step-usage-guide)
   - [Troubleshooting & FAQ](#troubleshooting--faq)
 - [🔄 Does the Patch Apply Automatically After Official Updates?](#-does-the-patch-apply-automatically-after-official-ide-updates)
@@ -379,13 +381,48 @@ Antigravity RTL incorporates an optional, strictly **opt-in** process-level inte
 
 #### How it Works:
 1. **DLL Proxying (`version.dll`)**: A 64-bit helper DLL named `version.dll` is placed in Antigravity's root folder right next to `Antigravity.exe`.
-2. **Cryptographically Verified (`SHA-256`)**: Before installation, the binary's SHA-256 hash is checked (`40f037232a180da8dff7611021270549fcc4e208580d8bf0f70bc9975f871b5f`). Any tampered or corrupted binary is immediately rejected.
+2. **Cryptographically Verified (`SHA-256`)**: Before installation, the binary's SHA-256 hash is checked (`e7b991d65611cac615d756d6be4f55f0e3856a0d37e98cc8fb4a19ebc655e7cc`). Any tampered or corrupted binary is immediately rejected.
 3. **Strict Opt-In**: The standard RTL typography installation (`Option 1`) **never** touches or copies `version.dll`. It is only deployed when explicitly requested.
 4. **Smart Config Merge & Safe Backups**: When enabling or modifying the proxy, existing custom rules (`target_processes`, `proxy_rules`, etc.) are preserved, and an automatic backup (`config.json.bak`) is created before any changes.
 5. **Real Protocol Handshake Verification**: The built-in tester performs an authentic SOCKS5 client greeting (`0x05 0x01 0x00`) or HTTP request to verify the actual proxy service rather than assuming an open port is a working proxy.
 6. **Transparent Process Interception**: The shield intercepts WinSock TCP/IP socket connections and routes language server and AI requests through your local proxy client (SOCKS5 or HTTP).
 7. **Zero Administrative Rights & Zero TUN Requirement**: Does not require Windows Administrator privileges and leaves your regular network adapters untouched.
 8. **Completely Removable**: Simply turn off the toggle in the Appearance menu, run `antigravity-rtl --disable-proxy`, or run `antigravity-rtl --restore` to wipe all files cleanly.
+
+---
+
+### 🛡️ Key Differences from Upstream & Security Hardening
+
+The bundled Proxy Shield is based on the open-source [yuaotian/antigravity-proxy](https://github.com/yuaotian/antigravity-proxy) project (MIT License), but has been **extensively sanitized, localized, and security-hardened** specifically for the Antigravity Smart RTL suite:
+
+| Feature / Aspect | Original Upstream Binary | Antigravity Smart RTL Enhanced Version |
+|---|---|---|
+| **UI Localization** | Hardcoded Chinese dialogs (`MessageBoxW`) | **100% English Localized**: Dialog title and messages rewritten in clear English. |
+| **Startup Behavior** | Shows modal dialog box on initial launch (`ui.load_notify: "once"`) | **Silent by Default**: Configured to `ui.load_notify: "none"` so it operates quietly in the background without interrupting the developer. |
+| **Supply-Chain Security** | Distributed third-party update mirrors (`wget.la`, `fastgit.cc`) with `allow_insecure_mirrors: true` | **Sanitized & Neutralized**: Auto-updates from remote mirrors disabled (`updates.enabled: false`, `allow_insecure_mirrors: false`, `mirrors: []`) to eliminate supply-chain attack risks. |
+| **Default Port Consistency**| Inconsistent defaults across tools (`7890` vs `10808`) | **Unified Port 10808**: Standardized across CLI, interactive menus, config templates, and in-app UI. |
+| **Connection Testing** | Simple TCP port probe | **Active Protocol Handshake**: Verifies genuine SOCKS5 greeting negotiation (`0x05 0x01 0x00`) and HTTP proxy response with millisecond latency HUD and visual toast feedback. |
+| **Binary Verification** | Unverified file copy | **Cryptographic SHA-256 Pinning**: Strict hash check before copying (`e7b991d65611cac615d756d6be4f55f0e3856a0d37e98cc8fb4a19ebc655e7cc`); tampered files are rejected. |
+| **Config Preservation** | Overwritten upon installation | **Smart Non-Destructive Merge**: Automatically creates `config.json.bak` and deep-merges user-defined rules and processes. |
+| **Installation Policy** | Often deployed implicitly | **Strictly Opt-In**: Never copied or installed during normal RTL typography patching. |
+
+---
+
+### 🔄 What Happens During Updates? (IDE & Proxy Updates)
+
+#### 1. Official Google Antigravity IDE Updates:
+* **Does an IDE update break Proxy Shield?**
+  Google Antigravity's official NSIS updater updates `Antigravity.exe` and replaces `resources/app.asar`. 
+  Because `config.json` is a user configuration file in the root application folder, **your proxy settings are preserved across updates**.
+* If an official installer replaces or removes `version.dll`, simply re-run `antigravity-rtl --proxy` (or toggle Proxy Shield in the in-app Appearance menu). The engine verifies the binary integrity and restores the shield without altering your custom configuration.
+
+#### 2. Upstream Proxy Shield Updates:
+* **Why is remote auto-updating disabled?**
+  In the original upstream project, automatic updating downloaded binaries from third-party mirrors in China (`wget.la`, `fastgit.cc`). We intentionally neutralized this feature (`updates.enabled: false`) to ensure **zero unexpected remote code execution** or supply-chain contamination on your machine.
+* **How are Proxy Shield updates delivered safely?**
+  All future improvements, upstream bug fixes, and security enhancements to Proxy Shield are vetted, English-localized, cryptographically hashed, and released through official **Antigravity Smart RTL** releases.
+* **Are your custom rules safe when updating?**
+  **Yes.** `ProxyManager.install()` uses a non-destructive smart merge: it reads your existing `config.json`, creates a dated backup (`config.json.bak`), and preserves all your custom routing rules (`proxy_rules`), excluded processes (`child_injection_exclude`), and custom ports while updating the core binary.
 
 ---
 
@@ -516,7 +553,7 @@ Because this tool patches internal application packages, total operational trans
    By default, existing application shortcuts remain 100% untouched. Only when explicitly opted in via the `--install-shortcuts` (or `-s`) flag does the patcher redirect shortcuts to `AntigravityLauncher.exe` to intercept IDE launches and protect against unannounced update reversions.
 
 6. **Anti-Sanction & Proxy Shield Binaries (`version.dll` & `config.json` next to `Antigravity.exe`)**:
-   When Proxy Shield is explicitly enabled (strictly **Opt-In**; never installed during standard RTL typography patching), a cryptographically verified 64-bit DLL proxy (`version.dll`, SHA-256: `40f037232a180da8dff7611021270549fcc4e208580d8bf0f70bc9975f871b5f`) and `config.json` are placed in the application root next to `Antigravity.exe` to intercept socket traffic for language server and worker processes. Existing custom configurations are automatically backed up to `config.json.bak` and merged non-destructively. Both files are completely removed whenever Proxy Shield is disabled or when running `--restore`. Detailed binary metadata, attribution, and build instructions are documented in [src/antigravity_rtl/bin/README.md](src/antigravity_rtl/bin/README.md).
+   When Proxy Shield is explicitly enabled (strictly **Opt-In**; never installed during standard RTL typography patching), a cryptographically verified, English-localized 64-bit DLL proxy (`version.dll`, SHA-256: `e7b991d65611cac615d756d6be4f55f0e3856a0d37e98cc8fb4a19ebc655e7cc`) and `config.json` are placed in the application root next to `Antigravity.exe` to intercept socket traffic for language server and worker processes. Existing custom configurations are automatically backed up to `config.json.bak` and merged non-destructively. Both files are completely removed whenever Proxy Shield is disabled or when running `--restore`. Detailed binary metadata, attribution, and build instructions are documented in [src/antigravity_rtl/bin/README.md](src/antigravity_rtl/bin/README.md).
 
 ---
 
