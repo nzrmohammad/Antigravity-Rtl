@@ -8,11 +8,17 @@ Unified CLI Orchestrator & Entrypoint (PEP 517/621 Compliant)
 import sys
 import logging
 
-from .constants import logger
+from .constants import (
+    logger,
+    DEFAULT_PROXY_PORT,
+    DEFAULT_PROXY_HOST,
+    DEFAULT_PROXY_TYPE,
+)
 from .core.detector import PlatformDetector
 from .core.process import ProcessManager
 from .core.patcher import AntigravityPatcher
 from .core.shield import AutoShieldManager
+from .core.proxy import ProxyManager
 from .ui.terminal import TerminalUI
 from .ui.menu import InteractiveMenu
 
@@ -60,8 +66,11 @@ Options:
   --dry-run                Simulate patching without modifying files
   -v, --verbose            Enable detailed debug logging
   -p, --path <DIR>         Specify custom Antigravity installation directory
-  -s, --shortcuts          Install anti-reversion auto-shield launcher & shortcuts
+  -s,  --shortcuts          Install anti-reversion auto-shield launcher & shortcuts
                            (alias: --install-shortcuts)
+  --proxy [PORT]           Enable Anti-Sanction Proxy Shield (Default: 10808)
+  --disable-proxy          Disable & remove Anti-Sanction Proxy Shield
+  --test-proxy [PORT]      Test connectivity & latency to local proxy port
   -y, --silent, --yes      Run non-interactively without interactive prompts
   --check-only             Output 1 if patched, 0 if unpatched, then exit immediately
   --wait-for-update        Daemon mode: monitor updater execution and reapply patch
@@ -74,6 +83,23 @@ Options:
 
     # Parse dry-run flag
     dry_run = "--dry-run" in sys.argv
+
+    if "--test-proxy" in sys.argv:
+        port = DEFAULT_PROXY_PORT
+        host = DEFAULT_PROXY_HOST
+        proxy_type = DEFAULT_PROXY_TYPE
+        for i, arg in enumerate(sys.argv):
+            if arg == "--test-proxy" and i + 1 < len(sys.argv) and not sys.argv[i + 1].startswith("-"):
+                val = sys.argv[i + 1]
+                if ":" in val:
+                    host, p_str = val.split(":", 1)
+                    if p_str.isdigit():
+                        port = int(p_str)
+                elif val.isdigit():
+                    port = int(val)
+        ok, lat, msg = ProxyManager.test_connection(host, port, proxy_type=proxy_type)
+        print(f"[{'OK' if ok else 'FAIL'}] {msg}")
+        sys.exit(0 if ok else 1)
 
     custom_path = None
     for i, arg in enumerate(sys.argv):
@@ -113,7 +139,50 @@ Options:
         print("[-] Error: Cannot proceed without a valid Antigravity installation path.")
         sys.exit(1)
 
+    if "--disable-proxy" in sys.argv:
+        ProxyManager.uninstall(target_dir)
+        print(f"[OK] Proxy Shield uninstalled from {target_dir}")
+        has_other_actions = any(x in sys.argv for x in [
+            "--restore", "-r", "--diagnostics", "--diag", "--apply", "--install-shortcuts",
+            "-s", "--shortcuts", "1", "2", "3", "4", "5", "--dry-run"
+        ])
+        if not has_other_actions:
+            sys.exit(0)
+
+    if any(x in sys.argv for x in ["--proxy", "--enable-proxy"]):
+        port = DEFAULT_PROXY_PORT
+        host = DEFAULT_PROXY_HOST
+        proxy_type = DEFAULT_PROXY_TYPE
+        for i, arg in enumerate(sys.argv):
+            if arg in ["--proxy", "--enable-proxy"] and i + 1 < len(sys.argv) and not sys.argv[i + 1].startswith("-"):
+                val = sys.argv[i + 1]
+                if ":" in val:
+                    host, p_str = val.split(":", 1)
+                    if p_str.isdigit():
+                        port = int(p_str)
+                elif val.isdigit():
+                    port = int(val)
+        ok = ProxyManager.install(target_dir, host=host, port=port, proxy_type=proxy_type)
+        if ok:
+            print(f"[OK] Proxy Shield installed ({proxy_type.upper()} {host}:{port}) into {target_dir}")
+            test_ok, lat, msg = ProxyManager.test_connection(host, port, proxy_type=proxy_type)
+            print(f"     Status: {msg}")
+        else:
+            print(f"[-] Failed installing Proxy Shield into {target_dir}")
+
+        has_other_actions = any(x in sys.argv for x in [
+            "--restore", "-r", "--diagnostics", "--diag", "--apply", "--install-shortcuts",
+            "-s", "--shortcuts", "1", "2", "3", "4", "5", "--dry-run"
+        ])
+        if not has_other_actions:
+            sys.exit(0 if ok else 1)
+
     patcher = AntigravityPatcher(target_dir)
+
+    if any(x in sys.argv for x in ["5", "--proxy-menu"]):
+        menu = InteractiveMenu(patcher)
+        menu.handle_proxy_menu()
+        return
 
     if any(x in sys.argv for x in ["4", "--diagnostics", "--diag"]):
         TerminalUI.print_banner()

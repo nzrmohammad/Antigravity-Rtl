@@ -1,4 +1,4 @@
-# Antigravity Smart RTL & Offline Typography Suite 🚀
+# 🚀 Antigravity Smart RTL & Offline Typography Suite
 
 <div align="center">
 
@@ -20,6 +20,44 @@
 **Antigravity Smart RTL** transforms the text presentation experience in Google DeepMind's Antigravity IDE. It delivers enterprise-grade right-to-left (RTL) typography for Persian, Arabic, and bilingual environments while rigorously preserving left-to-right (LTR) orientation for source code, terminals, tool panels, thoughts, and technical identifiers.
 
 Engineered for performance and resilience, it features a modular Object-Oriented Architecture (OOP), 100% offline embedded Persian fonts (Vazirmatn, Arad, B Nazanin, Shabnam, Sahel, Samim) and English developer typography (JetBrains Mono, Inter), live hot-reloading via the Chrome DevTools Protocol (CDP), official Electron ASAR binary specification compliance with SHA-256 block integrity verification, and non-destructive shortcut handling.
+
+---
+
+## 📖 Table of Contents
+
+- [Overview](#overview)
+- [Prerequisites & System Requirements](#prerequisites--system-requirements)
+- [Key Features & Highlights](#key-features--highlights)
+  - [Intelligent Bidirectional Engine (Smart RTL)](#-intelligent-bidirectional-engine-smart-rtl-with-70-letter-ratio)
+  - [100% Offline Embedded Typography](#-100-offline-embedded-typography-free--open-source)
+  - [Custom Font Support & Commercial Font Licensing](#-custom-font-support--commercial-font-licensing)
+  - [Persian vs. English Digits Toggle](#-persian-vs-english-digits-toggle-۰-۹-vs-0-9)
+  - [Dedicated Monospace Code & Terminal Font Selector](#-dedicated-monospace-code--terminal-font-selector)
+  - [Ironclad Technical Isolation](#-ironclad-technical-isolation)
+  - [Interactive In-App Appearance Control Center](#-interactive-in-app-appearance-control-center)
+  - [Electron 20+ ASAR Binary Compliance & Block SHA-256](#-electron-20-asar-binary-compliance--block-sha-256-integrity)
+  - [Live Sync via Chrome DevTools Protocol (CDP)](#-live-sync-via-chrome-devtools-protocol-cdp)
+  - [Anti-Sanction & Proxy Shield (Zero-TUN Geo-Bypass)](#-anti-sanction--proxy-shield-zero-tun-geo-bypass--real-time-port-tester)
+  - [Safe by Default: Preserved Windows Shortcuts](#-safe-by-default-preserved-windows-shortcuts)
+- [Architecture & Project Structure](#architecture--project-structure)
+- [Quick Start & Installation](#quick-start--installation)
+  - [Option A: Windows (One-Click or CLI)](#option-a-windows-one-click-or-cli)
+  - [Option B: macOS & Linux (Shell or Python 3)](#option-b-macos--linux-terminal-script-or-python-3)
+  - [Option C: Cross-Platform Node.js](#option-c-cross-platform-nodejs-zero-dependency)
+  - [The Interactive Command Center](#the-interactive-command-center)
+- [CLI Flags & Options Reference](#cli-flags--options-reference)
+- [Keyboard Shortcuts & In-App Controls](#keyboard-shortcuts--in-app-controls)
+- [🛡️ Anti-Sanction & Proxy Shield Guide](#-anti-sanction--proxy-shield-bypass-regional-restrictions--400403-errors)
+  - [The Problem: Geo-Blocking & Child Process Bypassing](#the-problem-geo-blocking--child-process-bypassing)
+  - [The Solution: Native Process-Level DLL Proxying](#the-solution-native-process-level-dll-proxying)
+  - [Step-by-Step Usage Guide (In-App GUI, Terminal Menu, CLI)](#step-by-step-usage-guide)
+  - [Troubleshooting & FAQ](#troubleshooting--faq)
+- [🔄 Does the Patch Apply Automatically After Official Updates?](#-does-the-patch-apply-automatically-after-official-ide-updates)
+  - [Default Safe Mode (Manual Re-Patch)](#1-default-safe-mode-manual-re-patch-in-2-seconds)
+  - [Auto-Shield Mode (Automated Background Self-Healing)](#2-auto-shield-mode-100-automated-background-self-healing)
+- [🔍 Modification & Security Audit Manifest](#-modification--security-audit-manifest)
+- [Technical Documentation & ASAR Specification](#technical-documentation--asar-specification)
+- [License](#license)
 
 ---
 
@@ -121,6 +159,12 @@ Popular commercial Persian fonts such as **IRANSans**, **IRANYekan**, and **Dana
 ### ⚡ Live Sync via Chrome DevTools Protocol (CDP)
 - Detects running Antigravity IDE instances and synchronizes CSS/DOM modifications live into open editor windows without requiring an application restart.
 
+### 🛡️ Anti-Sanction & Proxy Shield (Zero-TUN Geo-Bypass & Real-Time Port Tester)
+- **Eliminates HTTP 400 & 403 Sanction Errors**: Seamlessly routes `Antigravity.exe`, `language_server.exe`, and background `node.exe` processes through your local proxy.
+- **No TUN Mode & No Admin Privileges Needed**: Uses verified process-level DLL interception (`version.dll`), completely avoiding complicated network adapter configurations or system-wide routing rules.
+- **Live Connection & Port Tester**: Test whether your proxy software (Clash, v2rayN, Sing-box) is active on that port right from the UI with real-time millisecond latency measurement.
+- **Instant One-Click Presets**: Immediate setup for Clash (`7890`), Clash Meta (`7897`), v2rayN (`10808` / `10809`), and Sing-box (`2080`).
+
 ### 🛡️ Safe by Default: Preserved Windows Shortcuts
 - **Non-Destructive Execution**: By default, the patcher never modifies your Windows Desktop or Start Menu shortcuts.
 - **Opt-in Auto-Shield**: Users who desire automatic background re-patching after official IDE updates can easily opt in using the `--install-shortcuts` flag or interactive menu option 3.
@@ -145,10 +189,14 @@ antigravity-rtl/
 │   └── bundle.py                      # Asset bundler (CSS & base64 font synchronizer)
 ├── src/
 │   ├── antigravity_rtl/               # Modular Object-Oriented Package
+│   │   ├── bin/                       # Verified native helper binaries & templates
+│   │   │   ├── version.dll            # Anti-sanction interception DLL (64-bit C++17)
+│   │   │   └── config.template.json   # Process interception schema & targets
 │   │   ├── core/
 │   │   │   ├── asar.py                # AsarArchive: Electron ASAR parser, builder & SHA256 integrity
 │   │   │   ├── detector.py            # PlatformDetector: Cross-platform installation locator
 │   │   │   ├── process.py             # ProcessManager: Process lifecycle, launch & safe restart
+│   │   │   ├── proxy.py               # ProxyManager: Proxy Shield orchestrator & port tester
 │   │   │   ├── injector.py            # CodeInjector: Client-side JS & updater hook generator
 │   │   │   ├── shield.py              # AutoShieldManager: Shortcut protection & update daemon
 │   │   │   └── patcher.py             # AntigravityPatcher: Core patch orchestrator & restore logic
@@ -266,12 +314,14 @@ When launched in interactive mode, the dashboard displays:
 │                                                                                              │▒
 │      4     System Diagnostics & Health Check                        == [HEALTH CHECK]        │▒
 │                                                                                              │▒
+│      5     Anti-Sanction & Proxy Shield (Test & Configure)          ** [PROXY SHIELD]        │▒
+│                                                                                              │▒
 │      0     Exit Patcher                                             -- [EXIT]                │▒
 │                                                                                              │▒
 └──────────────────────────────────────────────────────────────────────────────────────────────┘▒
 ```
 
-Simply press `Enter` (or type `1`) to apply the patch.
+Simply press `Enter` (or type `1`) to apply the patch, or type `5` to open the Proxy Shield setup.
 
 ---
 
@@ -282,8 +332,11 @@ Simply press `Enter` (or type `1`) to apply the patch.
 | `--dry-run` | | **Simulation mode**: Validates paths, calculates SHA-256 blocks and prints the exact patch manifest without modifying any files on disk. |
 | `--verbose` | `-v` | Enables detailed standard-library debug logs and stack traces for troubleshooting. |
 | `--install-shortcuts` | `--shortcuts`, `-s`, `3` | **Opt-in**: Protects desktop & start menu shortcuts using `AntigravityLauncher.exe` for automatic update healing. Default is disabled (safe mode). |
-| `--restore` | `-r`, `2` | Fully restores `app.asar` from original factory backup and reverts shortcuts. |
-| `--diagnostics` | `--diag`, `4` | Displays system telemetry, patch status, live CDP port, and installation health check. |
+| `--restore` | `-r`, `2` | Fully restores `app.asar` from original factory backup, reverts shortcuts, and uninstalls proxy shield. |
+| `--proxy [PORT]` | | **Anti-Sanction Shield**: Enables native DLL proxying and configures host/port (defaults to `10808` or custom `[HOST:]PORT`). |
+| `--disable-proxy` | | Disables Proxy Shield and removes `version.dll` and `config.json` from the installation directory. |
+| `--test-proxy [PORT]` | | Tests TCP socket connectivity & real-time latency to your local proxy port (exits `0` if active, `1` if closed). |
+| `--diagnostics` | `--diag`, `4` | Displays system telemetry, patch status, proxy shield state, live CDP port, and installation health check. |
 | `--path <dir>` | `-p <dir>` | Explicitly targets an Antigravity installation path. |
 | `--no-kill` | | Applies the patch without closing running Antigravity processes; synchronizes via live CDP. |
 | `--kill` | | Forces closing Antigravity IDE processes before patching. |
@@ -300,13 +353,115 @@ Simply press `Enter` (or type `1`) to apply the patch.
 |---|---|---|
 | **Toggle Smart RTL** | `Alt + R` | Instantly switches between Smart RTL and stock LTR mode with visual toast HUD |
 | **Appearance Menu** | Top Bar Button (`Appearance`) | Opens floating customization popover for all appearance and typography controls |
+| **Proxy Shield Toggle** | In Popover Switch | Enables/disables process-level proxy routing for AI & language servers |
+| **Test Connection** | In Popover Button (`⚡ Test`) | Real-time TCP port listening verification with millisecond latency HUD |
+| **Proxy Quick Presets** | In Popover Chips | 1-click port selection for Clash (7890/7897), v2rayN (10808/10809), and Sing-box (2080) |
 | **Justify Text Toggle** | In Popover Switch | Smart two-sided paragraph alignment (`text-align: justify`) with anchored terminal line edges |
 | **Persian Digits Toggle** | In Popover Switch | Toggle between Eastern Arabic/Persian numerals (`۰-۹`) and Latin/English digits (`0-9`) |
 | **Font Family** | In Popover Dropdown | Select from Vazirmatn, Inter, Arad, B Nazanin, Shabnam, Sahel, Samim, Tahoma, System, or Custom |
 | **Code & Terminal Font** | In Popover Dropdown | Customize code block and terminal monospace font (JetBrains Mono, Consolas, Fira Code, Cascadia Code, Vazir Code, or Custom) |
-| **Font Size** | In Popover Slider / `+` / `-` | Dynamically adjust font scale between `12px` and `24px` |
-| **Line Spacing** | In Popover Buttons | Set line height to `1.5` (Compact), `1.75` (Standard), or `2.0` (Relaxed) |
 | **Reset to Default** | In Popover Footer | Instantly restore typography settings to factory default values |
+
+---
+
+## 🛡️ Anti-Sanction & Proxy Shield (Bypass Regional Restrictions & 400/403 Errors)
+
+### The Problem: Geo-Blocking & Child Process Bypassing
+Developers working in sanctioned or restricted regions (such as Iran, Russia, China, etc.) routinely encounter blocking and failure modes when communicating with Google AI servers:
+* `HTTP 400 Bad Request` or `HTTP 403 Forbidden` errors during model generation or chat queries.
+* "Failed to connect to language server" or dead agent thought streams.
+* Standard system proxies, PAC files, or browser extensions **fail to resolve the issue** because Google Antigravity spawns background binaries (`language_server.exe`, `agy.exe`, and worker `node.exe`) as detached child processes that bypass Windows WinINet / Internet Options system proxies unless run through an invasive whole-system TUN virtual adapter.
+
+---
+
+### The Solution: Native Process-Level DLL Proxying
+Antigravity RTL incorporates an optional, strictly **opt-in** process-level interception shield (modeled after and upstream-verified from the open-source [yuaotian/antigravity-proxy](https://github.com/yuaotian/antigravity-proxy) project, written in C++17 with MinHook and MIT license).
+
+#### How it Works:
+1. **DLL Proxying (`version.dll`)**: A 64-bit helper DLL named `version.dll` is placed in Antigravity's root folder right next to `Antigravity.exe`.
+2. **Cryptographically Verified (`SHA-256`)**: Before installation, the binary's SHA-256 hash is checked (`40f037232a180da8dff7611021270549fcc4e208580d8bf0f70bc9975f871b5f`). Any tampered or corrupted binary is immediately rejected.
+3. **Strict Opt-In**: The standard RTL typography installation (`Option 1`) **never** touches or copies `version.dll`. It is only deployed when explicitly requested.
+4. **Smart Config Merge & Safe Backups**: When enabling or modifying the proxy, existing custom rules (`target_processes`, `proxy_rules`, etc.) are preserved, and an automatic backup (`config.json.bak`) is created before any changes.
+5. **Real Protocol Handshake Verification**: The built-in tester performs an authentic SOCKS5 client greeting (`0x05 0x01 0x00`) or HTTP request to verify the actual proxy service rather than assuming an open port is a working proxy.
+6. **Transparent Process Interception**: The shield intercepts WinSock TCP/IP socket connections and routes language server and AI requests through your local proxy client (SOCKS5 or HTTP).
+7. **Zero Administrative Rights & Zero TUN Requirement**: Does not require Windows Administrator privileges and leaves your regular network adapters untouched.
+8. **Completely Removable**: Simply turn off the toggle in the Appearance menu, run `antigravity-rtl --disable-proxy`, or run `antigravity-rtl --restore` to wipe all files cleanly.
+
+---
+
+### Step-by-Step Usage Guide
+
+#### Method 1: Using the In-App GUI (Recommended)
+1. **Start Your Local Proxy Client**:
+   Ensure your local proxy software (e.g., **v2rayN**, **Clash / Mihomo**, **NekoBox**, or **Sing-box**) is running on your machine.
+2. **Open Appearance Menu**:
+   In Antigravity IDE, click the **Appearance** button in the top title bar.
+3. **Enable Proxy Shield**:
+   In the **🛡️ Proxy Shield** section, click the toggle switch to **Enabled**. The configuration panel will expand.
+4. **Select Protocol & Port**:
+   - Choose **SOCKS5 (Best)** (recommended for stability and performance) or **HTTP**.
+   - Enter your local proxy host (default: `127.0.0.1`) and port, or simply click one of the **Quick Presets**:
+     | Preset Name | Protocol | Host & Port | Common Client |
+     |---|---|---|---|
+     | **Clash** | SOCKS5 | `127.0.0.1:7890` | Clash for Windows, Mihomo Party, Clash Verge |
+     | **Clash Meta** | SOCKS5 | `127.0.0.1:7897` | Clash Verge Rev (Meta default port) |
+     | **v2rayN** | SOCKS5 | `127.0.0.1:10808` | v2rayN SOCKS5 inbound (default) |
+     | **v2rayN HTTP** | HTTP | `127.0.0.1:10809` | v2rayN HTTP inbound (default) |
+     | **Sing-box** | SOCKS5 | `127.0.0.1:2080` | Sing-box GUI / NekoBox |
+5. **Test Your Connection (Real-Time Port Check)**:
+   Click the **⚡ Test** button. The engine immediately performs a live TCP handshake:
+   - ✅ **Active (Green)**: `● Proxy active on 127.0.0.1:10808 (0.4ms)` — Your local proxy is responding and ready.
+   - ❌ **Refused (Red)**: `○ Connection refused: No proxy app on port ... (offline)` — Your proxy software is either closed or listening on a different port.
+6. **Restart / Reload Antigravity IDE**:
+   Changes take effect on application start. All AI communication now routes through your proxy with zero sanction blocks!
+
+---
+
+#### Method 2: Using the Interactive Terminal Menu
+1. Launch the patcher:
+   ```bash
+   antigravity-rtl
+   ```
+   (or `python src/patcher.py` / double-click `patch.bat`).
+2. Type `5` and press `Enter` to access **Anti-Sanction & Proxy Shield**.
+3. Use the interactive options:
+   - `1` — **Test Proxy Connection**: Tests connectivity to the currently configured host/port with real-time latency feedback.
+   - `2` — **Enable / Install Proxy Shield**: Custom configuration for host, port, and protocol.
+   - `3` — **Select Quick Preset**: 1-click preset setup for Clash, v2rayN, or Sing-box.
+   - `4` — **Disable / Uninstall Proxy Shield**: Removes `version.dll` and `config.json`.
+   - `0` — Return to the main menu.
+
+---
+
+#### Method 3: Using Direct CLI Commands
+You can test and configure the proxy directly from terminal scripts:
+```bash
+# 1. Test whether your local proxy is listening on port 10808 (or custom host:port)
+antigravity-rtl --test-proxy 10808
+
+# 2. Enable Proxy Shield and configure SOCKS5 on 127.0.0.1:10808
+antigravity-rtl --proxy 10808
+
+# 3. Enable Proxy Shield on a custom host and port:
+antigravity-rtl --proxy 127.0.0.1:7890
+
+# 4. Disable and remove Proxy Shield:
+antigravity-rtl --disable-proxy
+```
+
+---
+
+### Troubleshooting & FAQ
+
+#### Q: The connection test reports "Connection refused: No proxy app on port ..."?
+* **Cause**: No application on your computer is listening on that port.
+* **Fix**: Ensure your VPN/proxy client (v2rayN, Clash, Sing-box) is actively running and connected. Verify the inbound port in your client's settings (e.g. in v2rayN bottom status bar: `SOCKS: 10808, HTTP: 10809`).
+
+#### Q: Does Proxy Shield require administrative privileges?
+* **No**. `version.dll` resides directly within your user-level application folder (`%LOCALAPPDATA%\Programs\antigravity`). It does not install drivers, services, or registry hooks.
+
+#### Q: How do I completely uninstall Proxy Shield?
+* Simply toggle the switch to **Disabled** in the in-app menu, run `antigravity-rtl --disable-proxy`, or perform a full factory reset with `antigravity-rtl --restore`. Both `version.dll` and `config.json` will be deleted cleanly.
 
 ---
 
@@ -359,6 +514,9 @@ Because this tool patches internal application packages, total operational trans
 
 5. **Desktop & Start Menu Shortcuts (Preserved by Default)**:
    By default, existing application shortcuts remain 100% untouched. Only when explicitly opted in via the `--install-shortcuts` (or `-s`) flag does the patcher redirect shortcuts to `AntigravityLauncher.exe` to intercept IDE launches and protect against unannounced update reversions.
+
+6. **Anti-Sanction & Proxy Shield Binaries (`version.dll` & `config.json` next to `Antigravity.exe`)**:
+   When Proxy Shield is explicitly enabled (strictly **Opt-In**; never installed during standard RTL typography patching), a cryptographically verified 64-bit DLL proxy (`version.dll`, SHA-256: `40f037232a180da8dff7611021270549fcc4e208580d8bf0f70bc9975f871b5f`) and `config.json` are placed in the application root next to `Antigravity.exe` to intercept socket traffic for language server and worker processes. Existing custom configurations are automatically backed up to `config.json.bak` and merged non-destructively. Both files are completely removed whenever Proxy Shield is disabled or when running `--restore`. Detailed binary metadata, attribution, and build instructions are documented in [src/antigravity_rtl/bin/README.md](src/antigravity_rtl/bin/README.md).
 
 ---
 

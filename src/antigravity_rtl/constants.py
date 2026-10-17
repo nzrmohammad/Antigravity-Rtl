@@ -33,5 +33,16 @@ DEFAULT_SETTINGS = {
     "persianDigits": False,
     "justifyText": False,
     "codeFont": "JetBrains Mono",
-    "customCodeFont": ""
+    "customCodeFont": "",
+    "proxyEnabled": False,
+    "proxyType": "socks5",
+    "proxyHost": "127.0.0.1",
+    "proxyPort": 10808
 }
+
+# Proxy Shield Security & Configuration Constants
+DEFAULT_PROXY_PORT = 10808
+DEFAULT_PROXY_HOST = "127.0.0.1"
+DEFAULT_PROXY_TYPE = "socks5"
+PROXY_VERSION_DLL_SHA256 = "40f037232a180da8dff7611021270549fcc4e208580d8bf0f70bc9975f871b5f"
+

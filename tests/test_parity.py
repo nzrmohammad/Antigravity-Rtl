@@ -101,6 +101,14 @@ class TestParity(unittest.TestCase):
         with open(self.patcher_js_path, "r", encoding="utf-8") as f:
             js_code = f.read()
 
+        # Directly extract the client injection payload from patcher.js
+        start_marker = "/* __ANTIGRAVITY_RTL_INJECTED__ */"
+        idx_start = js_code.find(start_marker)
+        self.assertNotEqual(idx_start, -1, "Injection start marker missing in patcher.js")
+        idx_end = js_code.find("const patchedPreload = preloadCode", idx_start)
+        self.assertNotEqual(idx_end, -1, "Injection end marker missing in patcher.js")
+        js_injection = js_code[idx_start:idx_end]
+
         essential_features = [
             "justifyText",
             "ag-text-justify",
@@ -116,10 +124,27 @@ class TestParity(unittest.TestCase):
             "ag-code-font-badge",
             "Bundled (Ready)",
             "Installed on OS",
+            "proxyEnabled",
+            "proxyType",
+            "proxyHost",
+            "proxyPort",
+            "syncProxyConfigToFile",
+            "testProxyConnection",
+            "ag-toggle-proxy",
+            "ag-proxy-test-btn",
+            "ag-proxy-preset-btn",
+            ".bak",
+            "0x05, 0x01, 0x00",
+            "7890",
+            "7897",
+            "10808",
+            "10809",
+            "2080",
         ]
         for feat in essential_features:
             self.assertIn(feat, py_injection, f"Feature '{feat}' missing in Python CodeInjector")
-            self.assertIn(feat, js_code, f"Feature '{feat}' missing in patcher.js")
+            self.assertIn(feat, js_injection, f"Feature '{feat}' missing in patcher.js direct client payload")
+
 
 
 if __name__ == "__main__":

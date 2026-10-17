@@ -6,6 +6,7 @@ Coordinates ASAR inspection, backup retention, code injection, and persistent de
 """
 
 import os
+import sys
 import shutil
 from typing import Tuple, Dict, Any
 
@@ -14,6 +15,7 @@ from .process import ProcessManager
 from .asar import AsarArchive
 from .injector import CodeInjector
 from .shield import AutoShieldManager
+from .proxy import ProxyManager
 from ..constants import logger
 
 
@@ -181,6 +183,20 @@ class AntigravityPatcher:
                 else:
                     print("  [!] Restart Antigravity to reflect changes in current window.")
 
+            if sys.platform == "win32" and not dry_run:
+                try:
+                    target_dll = os.path.join(self.target_dir, "version.dll")
+                    target_cfg = os.path.join(self.target_dir, "config.json")
+                    # Strict Opt-In: If version.dll was placed without config, clean it up
+                    if os.path.isfile(target_dll) and not os.path.isfile(target_cfg):
+                        try:
+                            os.unlink(target_dll)
+                        except Exception:
+                            # If locked by a running process, write valid config to prevent popup
+                            ProxyManager.install(self.target_dir, host=ProxyManager.DEFAULT_HOST, port=ProxyManager.DEFAULT_PORT, proxy_type=ProxyManager.DEFAULT_TYPE)
+                except Exception as ex:
+                    logger.debug("Proxy Shield cleanup notice: %s", ex)
+
             return True
         except Exception as e:
             print(f"[-] Patch error: {e}")
@@ -250,6 +266,7 @@ class AntigravityPatcher:
                 appdata_patch = os.path.join(data_dir, "rtl-patch")
                 if os.path.isdir(appdata_patch):
                     shutil.rmtree(appdata_patch, ignore_errors=True)
+                ProxyManager.uninstall(self.target_dir)
             except Exception as e:
                 logger.debug("Non-critical cleanup error during restore: %s", e)
 
@@ -280,5 +297,7 @@ class AntigravityPatcher:
             "is_patched": is_patched,
             "is_running": is_running,
             "shield_active": shield_ok and patch_dir_ok,
-            "cdp_active": os.path.isfile(port_file)
+            "cdp_active": os.path.isfile(port_file),
+            "proxy_installed": ProxyManager.is_installed(self.target_dir),
+            "proxy_config": ProxyManager.read_config(self.target_dir)
         }

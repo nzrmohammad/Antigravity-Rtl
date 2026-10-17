@@ -1223,7 +1223,11 @@ try {
         persianDigits: false,
         justifyText: false,
         codeFont: 'JetBrains Mono',
-        customCodeFont: ''
+        customCodeFont: '',
+        proxyEnabled: false,
+        proxyType: 'socks5',
+        proxyHost: '127.0.0.1',
+        proxyPort: 10808
     };
 
     function getSettings() {
@@ -1238,6 +1242,18 @@ try {
                     if (typeof parsed.justifyText !== 'boolean') {
                         parsed.justifyText = false;
                     }
+                    if (typeof parsed.proxyEnabled !== 'boolean') {
+                        parsed.proxyEnabled = false;
+                    }
+                    if (!parsed.proxyType) {
+                        parsed.proxyType = 'socks5';
+                    }
+                    if (!parsed.proxyHost) {
+                        parsed.proxyHost = '127.0.0.1';
+                    }
+                    if (!parsed.proxyPort) {
+                        parsed.proxyPort = 10808;
+                    }
                     return Object.assign({}, DEFAULT_SETTINGS, parsed);
                 }
             }
@@ -1249,6 +1265,230 @@ try {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
         } catch(e) {}
+    }
+
+    let nodeNet = null;
+    let nodeFs = null;
+    let nodePath = null;
+    try {
+        if (typeof require === 'function') {
+            nodeNet = require('net');
+            nodeFs = require('fs');
+            nodePath = require('path');
+        }
+    } catch(e) {}
+
+    function getAppInstallDir() {
+        try {
+            if (typeof process !== 'undefined' && process.execPath && nodePath) {
+                return nodePath.dirname(process.execPath);
+            }
+        } catch(e) {}
+        return null;
+    }
+
+    function syncProxyConfigToFile(s) {
+        try {
+            const appDir = getAppInstallDir();
+            if (!appDir || !nodeFs || !nodePath) return;
+            const cfgPath = nodePath.join(appDir, 'config.json');
+            const dllPath = nodePath.join(appDir, 'version.dll');
+
+            if (s.proxyEnabled) {
+                if (!nodeFs.existsSync(dllPath)) {
+                    const candidateSources = [
+                        nodePath.join(appDir, 'resources', 'rtl-patch', 'antigravity_rtl', 'bin', 'version.dll'),
+                        nodePath.join(process.env.APPDATA || '', 'Antigravity', 'rtl-patch', 'antigravity_rtl', 'bin', 'version.dll')
+                    ];
+                    for (const cand of candidateSources) {
+                        try {
+                            if (nodeFs.existsSync(cand)) {
+                                nodeFs.copyFileSync(cand, dllPath);
+                                break;
+                            }
+                        } catch(ex) {}
+                    }
+                }
+
+                let cfg = {
+                    "child_injection_mode": "filtered",
+                    "fake_ip": { "cidr": "198.18.0.0/15", "enabled": true },
+                    "traffic_logging": false,
+                    "timeout": { "connect": 5000, "recv": 5000, "send": 5000 },
+                    "diagnostics": { "agent_ip_probe": false },
+                    "_version": "2.4",
+                    "_comment": "Antigravity-Proxy Configuration",
+                    "log_level": "info",
+                    "child_injection": true,
+                    "proxy_rules": {
+                        "routing": {
+                            "default_action": "proxy",
+                            "priority_mode": "order",
+                            "rules": [],
+                            "use_default_private": true,
+                            "enabled": true
+                        },
+                        "allowed_ports": [80, 443],
+                        "udp_mode": "auto",
+                        "ipv6_mode": "proxy",
+                        "udp_fallback": "block",
+                        "dns_mode": "direct"
+                    },
+                    "child_injection_exclude": [],
+                    "updates": {
+                        "enabled": false,
+                        "allow_insecure_mirrors": false,
+                        "check_delay_ms": 15000,
+                        "timeout_ms": 5000,
+                        "notify_once": false,
+                        "mirrors": []
+                    },
+                    "target_processes": [
+                        "agy.exe",
+                        "language_server.exe",
+                        "language_server_windows",
+                        "Antigravity.exe",
+                        "Antigravity IDE.exe",
+                        "node.exe"
+                    ]
+                };
+
+                if (nodeFs.existsSync(cfgPath)) {
+                    try {
+                        const raw = nodeFs.readFileSync(cfgPath, 'utf-8');
+                        const existing = JSON.parse(raw);
+                        if (existing && typeof existing === 'object') {
+                            try { nodeFs.copyFileSync(cfgPath, cfgPath + '.bak'); } catch(eBak) {}
+                            cfg = Object.assign(cfg, existing);
+                        }
+                    } catch(ex) {}
+                }
+
+                cfg.child_injection = true;
+                if (!cfg.updates) cfg.updates = {};
+                cfg.updates.enabled = false;
+                cfg.updates.allow_insecure_mirrors = false;
+                cfg.updates.mirrors = [];
+                cfg.proxy = {
+                    "type": (s.proxyType || 'socks5').toLowerCase().trim(),
+                    "host": (s.proxyHost || '127.0.0.1').trim(),
+                    "port": parseInt(s.proxyPort) || 10808
+                };
+                nodeFs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2), 'utf-8');
+            } else {
+                if (nodeFs.existsSync(cfgPath)) {
+                    try {
+                        try { nodeFs.copyFileSync(cfgPath, cfgPath + '.bak'); } catch(eBak) {}
+                        const raw = nodeFs.readFileSync(cfgPath, 'utf-8');
+                        const data = JSON.parse(raw);
+                        data.child_injection = false;
+                        if (data.proxy) data.proxy.type = 'direct';
+                        nodeFs.writeFileSync(cfgPath, JSON.stringify(data, null, 2), 'utf-8');
+                    } catch(ex) {
+                        try { nodeFs.unlinkSync(cfgPath); } catch(e2) {}
+                    }
+                }
+                if (nodeFs.existsSync(dllPath)) {
+                    try { nodeFs.unlinkSync(dllPath); } catch(e2) {}
+                }
+            }
+        } catch(e) {}
+    }
+
+    function testProxyConnection(host, port, proxyType, timeoutMs) {
+        if (!timeoutMs) timeoutMs = 2000;
+        return new Promise((resolve) => {
+            const targetHost = (host || '127.0.0.1').trim();
+            const targetPort = parseInt(port) || 10808;
+            const ptype = (proxyType || 'socks5').toLowerCase().trim();
+            const start = Date.now();
+
+            if (nodeNet && typeof nodeNet.Socket === 'function') {
+                const socket = new nodeNet.Socket();
+                let finished = false;
+                socket.setTimeout(timeoutMs);
+
+                socket.on('connect', () => {
+                    if (finished) return;
+                    if (ptype === 'socks5') {
+                        socket.write(Buffer.from([0x05, 0x01, 0x00]));
+                    } else if (ptype === 'http') {
+                        socket.write(Buffer.from('HEAD http://www.gstatic.com/generate_204 HTTP/1.1\r\nHost: www.gstatic.com\r\nConnection: close\r\n\r\n'));
+                    } else {
+                        finished = true;
+                        const latency = Date.now() - start;
+                        socket.destroy();
+                        resolve({ ok: true, latency: latency, msg: 'Port ' + targetPort + ' reachable (' + latency + 'ms)' });
+                    }
+                });
+
+                socket.on('data', (chunk) => {
+                    if (finished) return;
+                    finished = true;
+                    const latency = Date.now() - start;
+                    socket.destroy();
+                    if (ptype === 'socks5') {
+                        if (chunk.length >= 2 && chunk[0] === 0x05 && chunk[1] === 0x00) {
+                            resolve({ ok: true, latency: latency, msg: 'SOCKS5 active & verified (' + latency + 'ms)' });
+                        } else if (chunk.length >= 2 && chunk[0] === 0x05) {
+                            resolve({ ok: true, latency: latency, msg: 'SOCKS5 active (' + latency + 'ms)' });
+                        } else {
+                            resolve({ ok: false, latency: latency, msg: 'Port open, but failed SOCKS5 handshake' });
+                        }
+                    } else if (ptype === 'http') {
+                        if (chunk.toString().indexOf('HTTP/') !== -1) {
+                            resolve({ ok: true, latency: latency, msg: 'HTTP proxy active & verified (' + latency + 'ms)' });
+                        } else {
+                            resolve({ ok: false, latency: latency, msg: 'Port open, but invalid HTTP response' });
+                        }
+                    }
+                });
+
+                socket.on('timeout', () => {
+                    if (!finished) {
+                        finished = true;
+                        socket.destroy();
+                        resolve({ ok: false, latency: timeoutMs, msg: 'Connection timed out' });
+                    }
+                });
+
+                socket.on('error', (err) => {
+                    if (!finished) {
+                        finished = true;
+                        socket.destroy();
+                        const latency = Date.now() - start;
+                        const msg = (err.code === 'ECONNREFUSED')
+                            ? ('Connection refused: No proxy app on port ' + targetPort)
+                            : (err.code || 'Unreachable');
+                        resolve({ ok: false, latency: latency, msg: msg });
+                    }
+                });
+
+                try {
+                    socket.connect(targetPort, targetHost);
+                } catch(e) {
+                    resolve({ ok: false, latency: 0, msg: e.message || 'Socket error' });
+                }
+                return;
+            }
+
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            fetch('http://' + targetHost + ':' + targetPort + '/', { method: 'HEAD', mode: 'no-cors', signal: controller.signal })
+                .then(() => {
+                    clearTimeout(timer);
+                    const latency = Date.now() - start;
+                    resolve({ ok: true, latency: latency, msg: 'Port is responding (' + latency + 'ms)' });
+                })
+                .catch((err) => {
+                    clearTimeout(timer);
+                    const latency = Date.now() - start;
+                    if (err.name === 'AbortError') {
+                        resolve({ ok: false, latency: latency, msg: 'Connection timed out' });
+                    } else {
+                        resolve({ ok: false, latency: latency, msg: 'Connection refused on port ' + targetPort });
+                    }
+        });
     }
 
     let currentSettings = getSettings();
@@ -1659,7 +1899,7 @@ try {
                 </div>
 
                 <!-- Justify Text Toggle -->
-                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 11px 14px; border-radius: 10px; margin-bottom: 14px; border: 1px solid rgba(255,255,255,0.08);">
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 11px 14px; border-radius: 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.08);">
                     <div>
                         <div style="font-size: 13.5px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px;">
                             <span>Justify Text</span>
@@ -1669,6 +1909,69 @@ try {
                     </div>
                     <div id="ag-toggle-justify" style="width: 46px; height: 26px; background: \${currentSettings.justifyText ? '#3b82f6' : '#3f3f46'}; border-radius: 13px; position: relative; cursor: pointer; transition: background .2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); flex-shrink: 0;">
                         <div id="ag-justify-knob" style="position: absolute; width: 20px; height: 20px; background: white; border-radius: 50%; top: 3px; left: \${currentSettings.justifyText ? '22px' : '4px'}; transition: left .2s; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+                    </div>
+                </div>
+
+                <!-- Anti-Sanction & Proxy Shield Card -->
+                <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <div style="font-size: 13.5px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px;">
+                                <span>🛡️ Proxy Shield</span>
+                                <span id="ag-proxy-status-badge" style="font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600; background: \${currentSettings.proxyEnabled ? 'rgba(34, 197, 94, 0.22)' : 'rgba(161, 161, 170, 0.2)'}; color: \${currentSettings.proxyEnabled ? '#4ade80' : '#a1a1aa'};">\${currentSettings.proxyEnabled ? 'Enabled' : 'Disabled'}</span>
+                            </div>
+                            <div style="font-size: 11.5px; color: #a1a1aa; margin-top: 3px;">Bypass geo-restrictions & sanction errors (400/403)</div>
+                        </div>
+                        <div id="ag-toggle-proxy" style="width: 46px; height: 26px; background: \${currentSettings.proxyEnabled ? '#3b82f6' : '#3f3f46'}; border-radius: 13px; position: relative; cursor: pointer; transition: background .2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); flex-shrink: 0;">
+                            <div id="ag-proxy-knob" style="position: absolute; width: 20px; height: 20px; background: white; border-radius: 50%; top: 3px; left: \${currentSettings.proxyEnabled ? '22px' : '4px'}; transition: left .2s; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+                        </div>
+                    </div>
+
+                    <!-- Collapsible Proxy Configuration Details -->
+                    <div id="ag-proxy-panel" style="display: \${currentSettings.proxyEnabled ? 'block' : 'none'}; margin-top: 11px; padding-top: 11px; border-top: 1px solid rgba(255,255,255,0.08);">
+                        <!-- Protocol Selector -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px;">
+                            <label style="font-size: 12px; font-weight: 600; color: #e4e4e7;">Protocol:</label>
+                            <div style="display: flex; gap: 6px;">
+                                <button type="button" id="ag-proto-socks5" class="ag-proto-btn" style="background: \${currentSettings.proxyType === 'socks5' ? '#3b82f6' : '#27272a'}; border: 1px solid \${currentSettings.proxyType === 'socks5' ? '#3b82f6' : 'rgba(255,255,255,0.14)'}; color: \${currentSettings.proxyType === 'socks5' ? '#fff' : '#d4d4d8'}; font-size: 11px; font-weight: 600; border-radius: 5px; padding: 3px 9px; cursor: pointer;">SOCKS5 (Best)</button>
+                                <button type="button" id="ag-proto-http" class="ag-proto-btn" style="background: \${currentSettings.proxyType === 'http' ? '#3b82f6' : '#27272a'}; border: 1px solid \${currentSettings.proxyType === 'http' ? '#3b82f6' : 'rgba(255,255,255,0.14)'}; color: \${currentSettings.proxyType === 'http' ? '#fff' : '#d4d4d8'}; font-size: 11px; font-weight: 600; border-radius: 5px; padding: 3px 9px; cursor: pointer;">HTTP</button>
+                            </div>
+                        </div>
+
+                        <!-- Host, Port, and Live Test Button -->
+                        <div style="display: flex; gap: 8px; align-items: flex-end; margin-bottom: 9px;">
+                            <div style="flex: 1.3;">
+                                <label style="font-size: 11px; font-weight: 500; color: #a1a1aa; display: block; margin-bottom: 3px;">Host:</label>
+                                <input type="text" id="ag-proxy-host-input" value="\${currentSettings.proxyHost || '127.0.0.1'}" style="width: 100%; background: #27272a; color: #fff; border: 1px solid rgba(255,255,255,0.16); border-radius: 6px; padding: 5px 8px; font-size: 12px; outline: none; box-sizing: border-box; font-family: monospace;">
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="font-size: 11px; font-weight: 500; color: #a1a1aa; display: block; margin-bottom: 3px;">Port:</label>
+                                <input type="number" id="ag-proxy-port-input" value="\${currentSettings.proxyPort || 10808}" min="1" max="65535" style="width: 100%; background: #27272a; color: #fff; border: 1px solid rgba(255,255,255,0.16); border-radius: 6px; padding: 5px 8px; font-size: 12px; outline: none; box-sizing: border-box; font-family: monospace;">
+                            </div>
+                            <div>
+                                <button type="button" id="ag-proxy-test-btn" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.45); color: #60a5fa; padding: 5px 11px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; height: 30px; display: flex; align-items: center; gap: 4px; transition: all .15s;">
+                                    <span>⚡ Test</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Live Test Status Banner -->
+                        <div id="ag-proxy-test-result" style="display: none; padding: 6px 10px; border-radius: 6px; font-size: 11.5px; margin-bottom: 9px; align-items: center; justify-content: space-between;">
+                            <span id="ag-proxy-test-msg" style="font-weight: 500;"></span>
+                            <span id="ag-proxy-test-latency" style="font-weight: 700; font-family: monospace; font-size: 11px;"></span>
+                        </div>
+
+                        <!-- Quick Presets -->
+                        <div>
+                            <div style="font-size: 10.5px; font-weight: 600; color: #71717a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px;">Quick Presets:</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                <button type="button" class="ag-proxy-preset-btn" data-type="socks5" data-port="7890" style="background: #27272a; border: 1px solid rgba(255,255,255,0.12); color: #d4d4d8; font-size: 10.5px; padding: 3px 7px; border-radius: 5px; cursor: pointer;">Clash (7890)</button>
+                                <button type="button" class="ag-proxy-preset-btn" data-type="socks5" data-port="7897" style="background: #27272a; border: 1px solid rgba(255,255,255,0.12); color: #d4d4d8; font-size: 10.5px; padding: 3px 7px; border-radius: 5px; cursor: pointer;">Clash Meta (7897)</button>
+                                <button type="button" class="ag-proxy-preset-btn" data-type="socks5" data-port="10808" style="background: #27272a; border: 1px solid rgba(255,255,255,0.12); color: #d4d4d8; font-size: 10.5px; padding: 3px 7px; border-radius: 5px; cursor: pointer;">v2rayN (10808)</button>
+                                <button type="button" class="ag-proxy-preset-btn" data-type="http" data-port="10809" style="background: #27272a; border: 1px solid rgba(255,255,255,0.12); color: #d4d4d8; font-size: 10.5px; padding: 3px 7px; border-radius: 5px; cursor: pointer;">v2rayN HTTP (10809)</button>
+                                <button type="button" class="ag-proxy-preset-btn" data-type="socks5" data-port="2080" style="background: #27272a; border: 1px solid rgba(255,255,255,0.12); color: #d4d4d8; font-size: 10.5px; padding: 3px 7px; border-radius: 5px; cursor: pointer;">Sing-box (2080)</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1803,6 +2106,128 @@ try {
                 applySettings(currentSettings);
                 saveSettings(currentSettings);
             };
+
+            const proxyToggle = popoverInstance.querySelector('#ag-toggle-proxy');
+            const proxyKnob = popoverInstance.querySelector('#ag-proxy-knob');
+            const proxyBadge = popoverInstance.querySelector('#ag-proxy-status-badge');
+            const proxyPanel = popoverInstance.querySelector('#ag-proxy-panel');
+            const protoSocks5 = popoverInstance.querySelector('#ag-proto-socks5');
+            const protoHttp = popoverInstance.querySelector('#ag-proto-http');
+            const hostInput = popoverInstance.querySelector('#ag-proxy-host-input');
+            const portInput = popoverInstance.querySelector('#ag-proxy-port-input');
+            const testBtn = popoverInstance.querySelector('#ag-proxy-test-btn');
+            const testResult = popoverInstance.querySelector('#ag-proxy-test-result');
+            const testMsg = popoverInstance.querySelector('#ag-proxy-test-msg');
+            const testLatency = popoverInstance.querySelector('#ag-proxy-test-latency');
+
+            proxyToggle.onclick = () => {
+                currentSettings.proxyEnabled = !currentSettings.proxyEnabled;
+                proxyToggle.style.background = currentSettings.proxyEnabled ? '#3b82f6' : '#3f3f46';
+                proxyKnob.style.left = currentSettings.proxyEnabled ? '22px' : '4px';
+                if (proxyBadge) {
+                    proxyBadge.style.background = currentSettings.proxyEnabled ? 'rgba(34, 197, 94, 0.22)' : 'rgba(161, 161, 170, 0.2)';
+                    proxyBadge.style.color = currentSettings.proxyEnabled ? '#4ade80' : '#a1a1aa';
+                    proxyBadge.textContent = currentSettings.proxyEnabled ? 'Enabled' : 'Disabled';
+                }
+                proxyPanel.style.display = currentSettings.proxyEnabled ? 'block' : 'none';
+                saveSettings(currentSettings);
+                syncProxyConfigToFile(currentSettings);
+                showRTLToast(currentSettings.proxyEnabled ? 'Proxy Shield: Enabled (Active on reload)' : 'Proxy Shield: Disabled');
+            };
+
+            function updateProtoButtons(selectedType) {
+                currentSettings.proxyType = selectedType;
+                if (protoSocks5 && protoHttp) {
+                    protoSocks5.style.background = (selectedType === 'socks5') ? '#3b82f6' : '#27272a';
+                    protoSocks5.style.borderColor = (selectedType === 'socks5') ? '#3b82f6' : 'rgba(255,255,255,0.14)';
+                    protoSocks5.style.color = (selectedType === 'socks5') ? '#fff' : '#d4d4d8';
+
+                    protoHttp.style.background = (selectedType === 'http') ? '#3b82f6' : '#27272a';
+                    protoHttp.style.borderColor = (selectedType === 'http') ? '#3b82f6' : 'rgba(255,255,255,0.14)';
+                    protoHttp.style.color = (selectedType === 'http') ? '#fff' : '#d4d4d8';
+                }
+                saveSettings(currentSettings);
+                syncProxyConfigToFile(currentSettings);
+            }
+
+            if (protoSocks5) protoSocks5.onclick = () => updateProtoButtons('socks5');
+            if (protoHttp) protoHttp.onclick = () => updateProtoButtons('http');
+
+            if (hostInput) {
+                hostInput.oninput = () => {
+                    currentSettings.proxyHost = hostInput.value.trim();
+                    saveSettings(currentSettings);
+                    syncProxyConfigToFile(currentSettings);
+                };
+            }
+
+            if (portInput) {
+                portInput.oninput = () => {
+                    currentSettings.proxyPort = parseInt(portInput.value) || 10808;
+                    saveSettings(currentSettings);
+                    syncProxyConfigToFile(currentSettings);
+                };
+            }
+
+            async function runConnectionTest() {
+                if (!testBtn || !testResult || !testMsg) return;
+                const h = (hostInput ? hostInput.value : currentSettings.proxyHost) || '127.0.0.1';
+                const p = parseInt(portInput ? portInput.value : currentSettings.proxyPort) || 10808;
+
+                testBtn.style.opacity = '0.5';
+                testBtn.style.pointerEvents = 'none';
+                testBtn.innerHTML = '<span>⏳ Checking...</span>';
+                testResult.style.display = 'flex';
+                testResult.style.background = 'rgba(59, 130, 246, 0.12)';
+                testResult.style.border = '1px solid rgba(59, 130, 246, 0.3)';
+                testMsg.style.color = '#93c5fd';
+                testMsg.textContent = 'Connecting to ' + h + ':' + p + '...';
+                testLatency.textContent = '';
+
+                try {
+                    const res = await testProxyConnection(h, p, currentSettings.proxyType, 2000);
+                    testResult.style.display = 'flex';
+                    if (res.ok) {
+                        testResult.style.background = 'rgba(34, 197, 94, 0.15)';
+                        testResult.style.border = '1px solid rgba(34, 197, 94, 0.35)';
+                        testMsg.style.color = '#4ade80';
+                        testMsg.textContent = '● ' + res.msg;
+                        testLatency.style.color = '#86efac';
+                        testLatency.textContent = res.latency + 'ms';
+                    } else {
+                        testResult.style.background = 'rgba(239, 68, 68, 0.15)';
+                        testResult.style.border = '1px solid rgba(239, 68, 68, 0.35)';
+                        testMsg.style.color = '#f87171';
+                        testMsg.textContent = '○ ' + res.msg;
+                        testLatency.style.color = '#fca5a5';
+                        testLatency.textContent = 'offline';
+                    }
+                } catch(err) {
+                    testResult.style.display = 'flex';
+                    testResult.style.background = 'rgba(239, 68, 68, 0.15)';
+                    testResult.style.border = '1px solid rgba(239, 68, 68, 0.35)';
+                    testMsg.style.color = '#f87171';
+                    testMsg.textContent = '○ Error: ' + (err.message || 'Check failed');
+                    testLatency.textContent = '';
+                } finally {
+                    testBtn.style.opacity = '1';
+                    testBtn.style.pointerEvents = 'auto';
+                    testBtn.innerHTML = '<span>⚡ Test</span>';
+                }
+            }
+
+            if (testBtn) testBtn.onclick = runConnectionTest;
+
+            popoverInstance.querySelectorAll('.ag-proxy-preset-btn').forEach(btnEl => {
+                btnEl.onclick = () => {
+                    const presetType = btnEl.getAttribute('data-type');
+                    const presetPort = parseInt(btnEl.getAttribute('data-port'));
+                    if (portInput) portInput.value = presetPort;
+                    currentSettings.proxyPort = presetPort;
+                    updateProtoButtons(presetType);
+                    runConnectionTest();
+                };
+            });
 
             const fontSelect = popoverInstance.querySelector('#ag-font-family-select');
             const fontBadge = popoverInstance.querySelector('#ag-font-family-badge');
@@ -1971,6 +2396,7 @@ try {
                 currentSettings = Object.assign({}, DEFAULT_SETTINGS);
                 applySettings(currentSettings);
                 saveSettings(currentSettings);
+                syncProxyConfigToFile(currentSettings);
                 closePopover();
                 openPopover();
             };
@@ -2027,6 +2453,7 @@ try {
 
     function initAll() {
         applySettings(currentSettings);
+        syncProxyConfigToFile(currentSettings);
         initAppearanceMenu();
 
         if (!document.getElementById('ag-appearance-menu-btn')) {
