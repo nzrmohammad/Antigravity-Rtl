@@ -614,7 +614,62 @@ body:not(.ag-rtl-disabled) code:not(pre code)[dir="rtl"] {
 }
 
 /* =========================================================
-   ۶. بازگردانی کامل در صورت غیرفعال بودن RTL
+   ۶. مهار و جلوگیری قطعی از اسکرول دوتایی (Double Scrollbar Elimination)
+   ========================================================= */
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] .chat-message,
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] [class*="prose"],
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] [role="article"],
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] .leading-relaxed {
+  overflow-y: visible !important;
+  overflow-x: visible !important;
+  max-height: none !important;
+}
+
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] .chat-message::-webkit-scrollbar,
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] [class*="prose"]::-webkit-scrollbar,
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] [role="article"]::-webkit-scrollbar,
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] .leading-relaxed::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] .chat-message,
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] [class*="prose"],
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] [role="article"],
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] .leading-relaxed {
+  scrollbar-width: none !important;
+}
+
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] pre {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+}
+
+body:not(.ag-rtl-disabled) div[data-lexical-editor="true"],
+body:not(.ag-rtl-disabled) #antigravity\.agentSidePanelInputBox [contenteditable="true"] {
+  overflow-x: hidden !important;
+}
+
+/* =========================================================
+   ۷. استایل اختصاصی اسکرول‌بار پاپ‌اور تنظیمات (رفع قطعی اسکرول دوتایی منو)
+   ========================================================= */
+#ag-appearance-popover::-webkit-scrollbar {
+  width: 5px !important;
+}
+#ag-appearance-popover::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+#ag-appearance-popover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-radius: 4px !important;
+}
+#ag-appearance-popover::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.45) !important;
+}
+
+/* =========================================================
+   ۸. بازگردانی کامل در صورت غیرفعال بودن RTL
    ========================================================= */
 body.ag-rtl-disabled [dir="rtl"] {
   direction: ltr !important;

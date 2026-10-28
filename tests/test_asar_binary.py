@@ -26,7 +26,7 @@ class TestAsarBinary(unittest.TestCase):
             out_asar = os.path.join(tmpdir, "test.asar")
 
             # 0. Generate synthetic, spec-compliant ASAR
-            build_synthetic_asar(input_asar, version="2.24.0", is_patched=False)
+            build_synthetic_asar(input_asar, version="2.28.0", is_patched=False)
             archive = AsarArchive(input_asar)
 
             replacements = {
@@ -73,7 +73,7 @@ class TestAsarBinary(unittest.TestCase):
             orig_meta = archive.get_metadata()
             self.assertTrue(meta["is_patched"])
             self.assertEqual(meta["version_str"], orig_meta["version_str"])
-            self.assertEqual(meta["version_tuple"], (2, 24, 0))
+            self.assertEqual(meta["version_tuple"], (2, 28, 0))
 
 
 if __name__ == "__main__":

@@ -616,7 +616,62 @@ body:not(.ag-rtl-disabled) code:not(pre code)[dir="rtl"] {
 }
 
 /* =========================================================
-   ۶. بازگردانی کامل در صورت غیرفعال بودن RTL
+   ۶. مهار و جلوگیری قطعی از اسکرول دوتایی (Double Scrollbar Elimination)
+   ========================================================= */
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] .chat-message,
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] [class*="prose"],
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] [role="article"],
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] .leading-relaxed {
+  overflow-y: visible !important;
+  overflow-x: visible !important;
+  max-height: none !important;
+}
+
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] .chat-message::-webkit-scrollbar,
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] [class*="prose"]::-webkit-scrollbar,
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] [role="article"]::-webkit-scrollbar,
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] .leading-relaxed::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] .chat-message,
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] [class*="prose"],
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] [role="article"],
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] .leading-relaxed {
+  scrollbar-width: none !important;
+}
+
+body:not(.ag-rtl-disabled) [data-testid="conversation-view"] pre {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+}
+
+body:not(.ag-rtl-disabled) div[data-lexical-editor="true"],
+body:not(.ag-rtl-disabled) #antigravity\\.agentSidePanelInputBox [contenteditable="true"] {
+  overflow-x: hidden !important;
+}
+
+/* =========================================================
+   ۷. استایل اختصاصی اسکرول‌بار پاپ‌اور تنظیمات (رفع قطعی اسکرول دوتایی منو)
+   ========================================================= */
+#ag-appearance-popover::-webkit-scrollbar {
+  width: 5px !important;
+}
+#ag-appearance-popover::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+#ag-appearance-popover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-radius: 4px !important;
+}
+#ag-appearance-popover::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.45) !important;
+}
+
+/* =========================================================
+   ۸. بازگردانی کامل در صورت غیرفعال بودن RTL
    ========================================================= */
 body.ag-rtl-disabled [dir="rtl"] {
   direction: ltr !important;
@@ -1671,6 +1726,10 @@ try {
         if (!el || el.nodeType !== 1) return;
         if (el.matches('pre, pre *, .monaco-editor, .monaco-editor *, .terminal, .terminal-wrapper, [data-testid*="tool"], [data-testid*="collapsible"], button.review-button, button.review-button *, .files-changed-header, .files-changed-header *, .katex, .katex *, .katex-display, .katex-display *, math, math *')) return;
 
+        const currentText = el.textContent || '';
+        if (el.__ag_last_text === currentText && el.hasAttribute('dir')) return;
+        el.__ag_last_text = currentText;
+
         if (el.matches && el.matches('[data-testid="conversation-row-sidebar"]')) {
             const titleEl = el.querySelector('span.truncate, .truncate');
             const dir = detectSmartDirection((titleEl ? titleEl.textContent : el.textContent) || '');
@@ -1766,8 +1825,12 @@ try {
         }
 
         if (el.classList && el.classList.contains('leading-relaxed')) {
-            const dir = detectSmartDirection(el.textContent || '');
-            if (dir) el.setAttribute('dir', dir);
+            const style = window.getComputedStyle ? window.getComputedStyle(el) : null;
+            const hasScroll = style && (style.overflowY === 'auto' || style.overflowY === 'scroll');
+            if (!hasScroll) {
+                const dir = detectSmartDirection(currentText);
+                if (dir) el.setAttribute('dir', dir);
+            }
         }
     }
 
@@ -1833,6 +1896,8 @@ try {
                 closePopover();
                 return;
             }
+            const old = document.getElementById('ag-appearance-popover');
+            if (old) old.remove();
 
             btn.classList.add('bg-secondary', 'text-foreground');
             const rect = btn.getBoundingClientRect();
@@ -1859,8 +1924,6 @@ try {
                 box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
                 z-index: 999999;
                 user-select: none;
-                scrollbar-width: thin;
-                scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
             \`;
 
             popoverInstance.innerHTML = \`
@@ -2528,7 +2591,11 @@ try {
         pendingNodes.clear();
         for (let i = 0; i < nodes.length; i++) {
             const node = nodes[i];
-            if (node && node.nodeType === 1) {
+            if (!node || node.nodeType !== 1) continue;
+            const tag = node.tagName;
+            if (tag === 'P' || tag === 'LI' || tag === 'BLOCKQUOTE' || /^H[1-6]$/.test(tag) || tag === 'TABLE' || tag === 'CODE') {
+                applySmartDirectionToElement(node);
+            } else {
                 applySmartDirectionToElement(node);
                 processAllSmartRTL(node);
             }

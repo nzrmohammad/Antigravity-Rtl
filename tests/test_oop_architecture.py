@@ -93,7 +93,7 @@ class TestOOPArchitecture(unittest.TestCase):
             res_dir = os.path.join(tmp_dir, "resources")
             os.makedirs(res_dir)
             asar_path = os.path.join(res_dir, "app.asar")
-            build_synthetic_asar(asar_path, version="2.24.0", is_patched=False)
+            build_synthetic_asar(asar_path, version="2.28.0", is_patched=False)
 
             patcher = AntigravityPatcher(tmp_dir)
 

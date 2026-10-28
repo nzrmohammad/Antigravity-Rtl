@@ -11,6 +11,7 @@ import sys
 import json
 import time
 import socket
+import struct
 import shutil
 import hashlib
 from typing import Tuple, Dict, Any, Optional
@@ -96,20 +97,92 @@ class ProxyManager:
         return os.path.join(target_dir, "config.json")
 
     @classmethod
+    def test_gemini_reachability(
+        cls,
+        host: str = DEFAULT_HOST,
+        port: int = DEFAULT_PORT,
+        proxy_type: str = DEFAULT_TYPE,
+        timeout: float = 3.5,
+        target_host: str = "generativelanguage.googleapis.com",
+        target_port: int = 443,
+    ) -> Tuple[bool, float, str]:
+        """
+        Actively verifies end-to-end anti-sanction tunnel through local proxy to Google Gemini API
+        (generativelanguage.googleapis.com:443).
+
+        Returns:
+            (is_unblocked: bool, latency_ms: float, status_message: str)
+        """
+        host = (host or cls.DEFAULT_HOST).strip()
+        try:
+            port = int(port)
+        except (ValueError, TypeError):
+            return False, 0.0, f"Invalid port: {port}"
+
+        ptype = (proxy_type or cls.DEFAULT_TYPE).lower().strip()
+        t0 = time.perf_counter()
+        sock = None
+        try:
+            sock = socket.create_connection((host, port), timeout=timeout)
+            sock.settimeout(timeout)
+
+            if ptype == "socks5":
+                sock.sendall(b"\x05\x01\x00")
+                resp = sock.recv(2)
+                if len(resp) < 2 or resp[0] != 0x05 or resp[1] != 0x00:
+                    return False, 0.0, "SOCKS5 greeting failed"
+
+                host_bytes = target_host.encode("ascii")
+                cmd = b"\x05\x01\x00\x03" + bytes([len(host_bytes)]) + host_bytes + struct.pack(">H", target_port)
+                sock.sendall(cmd)
+                resp = sock.recv(10)
+                t1 = time.perf_counter()
+                latency_ms = round((t1 - t0) * 1000.0, 1)
+
+                if len(resp) >= 4 and resp[0] == 0x05 and resp[1] == 0x00:
+                    return True, latency_ms, f"Gemini API tunnel verified & unblocked via SOCKS5 ({latency_ms}ms)"
+                rep_code = resp[1] if len(resp) >= 2 else 0xFF
+                return False, latency_ms, f"Proxy rejected upstream tunnel to {target_host} (REP: 0x{rep_code:02x})"
+
+            elif ptype == "http":
+                req = f"CONNECT {target_host}:{target_port} HTTP/1.1\r\nHost: {target_host}:{target_port}\r\nConnection: close\r\n\r\n".encode("ascii")
+                sock.sendall(req)
+                resp = sock.recv(256)
+                t1 = time.perf_counter()
+                latency_ms = round((t1 - t0) * 1000.0, 1)
+                if b"200" in resp:
+                    return True, latency_ms, f"Gemini API tunnel verified & unblocked via HTTP CONNECT ({latency_ms}ms)"
+                return False, latency_ms, f"HTTP proxy rejected tunnel to {target_host}"
+
+            return False, 0.0, f"Unsupported proxy type for upstream test: {ptype}"
+        except Exception as e:
+            return False, 0.0, f"Upstream connection failed: {e}"
+        finally:
+            if sock:
+                try:
+                    sock.close()
+                except Exception:
+                    pass
+
+    @classmethod
     def test_connection(
         cls,
         host: str = DEFAULT_HOST,
         port: int = DEFAULT_PORT,
         timeout: float = 2.0,
         proxy_type: str = DEFAULT_TYPE,
+        check_upstream: bool = False,
     ) -> Tuple[bool, float, str]:
         """
         Tests whether a local proxy software is actively listening on host:port and
         verifies the handshake for SOCKS5 or HTTP protocols.
+        If check_upstream is True, also verifies end-to-end tunnel to Google Gemini API.
 
         Returns:
             (is_active: bool, latency_ms: float, status_message: str)
         """
+        if check_upstream:
+            return cls.test_gemini_reachability(host=host, port=port, proxy_type=proxy_type, timeout=timeout)
         host = (host or cls.DEFAULT_HOST).strip()
         try:
             port = int(port)

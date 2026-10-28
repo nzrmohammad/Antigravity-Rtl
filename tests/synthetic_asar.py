@@ -15,7 +15,7 @@ from antigravity_rtl.core.asar import sha256_blocks
 def build_synthetic_asar(
     output_path: str,
     files: Optional[Dict[str, Union[str, bytes]]] = None,
-    version: str = "2.24.0",
+    version: str = "2.28.0",
     is_patched: bool = False
 ) -> str:
     """

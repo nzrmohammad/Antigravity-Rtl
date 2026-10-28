@@ -200,6 +200,37 @@ class TestProxyManager(unittest.TestCase):
         self.assertFalse(ok)
         self.assertIn("not a SOCKS5 proxy", msg)
 
+    def test_gemini_reachability_socks5_mock(self):
+        """Verifies end-to-end simulated SOCKS5 tunnel handshake to Google Gemini."""
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.bind(("127.0.0.1", 0))
+        server.listen(1)
+        port = server.getsockname()[1]
+
+        def serve_socks5():
+            try:
+                conn, _ = server.accept()
+                greeting = conn.recv(16)
+                if len(greeting) >= 3 and greeting[0] == 0x05:
+                    conn.sendall(b"\x05\x00")
+                    connect_cmd = conn.recv(128)
+                    if len(connect_cmd) >= 4 and connect_cmd[1] == 0x01:
+                        conn.sendall(b"\x05\x00\x00\x01\x00\x00\x00\x00\x00\x00")
+                conn.close()
+            except Exception:
+                pass
+            finally:
+                server.close()
+
+        t = threading.Thread(target=serve_socks5, daemon=True)
+        t.start()
+
+        ok, lat, msg = ProxyManager.test_connection("127.0.0.1", port, proxy_type="socks5", check_upstream=True)
+        t.join(timeout=2.0)
+
+        self.assertTrue(ok)
+        self.assertIn("Gemini API tunnel verified", msg)
+
 
 if __name__ == "__main__":
     unittest.main()

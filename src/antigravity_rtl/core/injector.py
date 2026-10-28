@@ -537,6 +537,10 @@ try {{
         if (document.body && document.body.classList.contains('ag-rtl-disabled')) return;
         if (isInsideTechnicalContainer(el)) return;
 
+        const currentText = el.textContent || '';
+        if (el.__ag_last_text === currentText && el.hasAttribute('dir')) return;
+        el.__ag_last_text = currentText;
+
         if (el.getAttribute('data-testid') === 'conversation-row-sidebar' || (el.closest && el.closest('[data-testid="conversation-row-sidebar"]'))) {{
             const row = el.getAttribute('data-testid') === 'conversation-row-sidebar' ? el : el.closest('[data-testid="conversation-row-sidebar"]');
             const dir = detectSmartDirection(row.textContent || '');
@@ -632,8 +636,12 @@ try {{
                                  (el.className && typeof el.className === 'string' &&
                                   (el.className.includes('chat-message') || el.className.includes('prose')));
             if (isChatMessage) {{
-                const dir = detectSmartDirection(el.textContent || '');
-                if (dir) el.setAttribute('dir', dir);
+                const style = window.getComputedStyle ? window.getComputedStyle(el) : null;
+                const hasScroll = style && (style.overflowY === 'auto' || style.overflowY === 'scroll');
+                if (!hasScroll) {{
+                    const dir = detectSmartDirection(el.textContent || '');
+                    if (dir) el.setAttribute('dir', dir);
+                }}
             }}
         }}
     }}
@@ -707,6 +715,8 @@ try {{
                 closePopover();
                 return;
             }}
+            const old = document.getElementById('ag-appearance-popover');
+            if (old) old.remove();
 
             btn.classList.add('bg-secondary', 'text-foreground');
             const rect = btn.getBoundingClientRect();
@@ -733,8 +743,6 @@ try {{
                 box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
                 z-index: 999999;
                 user-select: none;
-                scrollbar-width: thin;
-                scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
             `;
 
             popoverInstance.innerHTML = `
@@ -1406,7 +1414,11 @@ try {{
         pendingNodes.clear();
         for (let i = 0; i < nodes.length; i++) {{
             const node = nodes[i];
-            if (node && node.nodeType === 1) {{
+            if (!node || node.nodeType !== 1) continue;
+            const tag = node.tagName;
+            if (tag === 'P' || tag === 'LI' || tag === 'BLOCKQUOTE' || /^H[1-6]$/.test(tag) || tag === 'TABLE' || tag === 'CODE') {{
+                applySmartDirectionToElement(node);
+            }} else {{
                 applySmartDirectionToElement(node);
                 processAllSmartRTL(node);
             }}

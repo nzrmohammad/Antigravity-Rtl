@@ -5,7 +5,7 @@
 [![Version: v1.2.0](https://img.shields.io/badge/Version-v1.2.0-blue.svg?style=for-the-badge)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 [![Platform: Windows | macOS | Linux](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-0078D6?style=for-the-badge&logo=windows)](https://microsoft.com)
-[![Tested on: Antigravity v2.24.0+](https://img.shields.io/badge/Antigravity-v2.24.0+%20Verified-00C853?style=for-the-badge&logo=google)](https://deepmind.google)
+[![Tested on: Antigravity v2.28.0+](https://img.shields.io/badge/Antigravity-v2.28.0+%20Verified-00C853?style=for-the-badge&logo=google)](https://deepmind.google)
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Offline Fonts](https://img.shields.io/badge/Embedded%20Fonts-100%25%20Offline-FF6B6B?style=for-the-badge)](fonts/)
 
@@ -69,7 +69,7 @@ Before running the patcher, ensure your system meets the following requirements:
 
 | Requirement | Specification | Notes |
 |---|---|---|
-| **Target Application** | **Google Antigravity IDE (v2.24.0+)** | Verified on modern v2.x builds |
+| **Target Application** | **Google Antigravity IDE (v2.28.0+)** | Verified on modern v2.x builds |
 | **Operating System** | Windows 10 / 11 (64-bit), macOS 11+, or Linux | Cross-platform directory & process handling |
 | **Runtime Environment** | **Python 3.8+** *OR* **Node.js 16+** | Pure standard library — zero external dependencies |
 | **Network** | **100% Offline** | Zero CDN dependencies; all fonts & assets embedded locally |
