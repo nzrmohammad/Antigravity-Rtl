@@ -309,15 +309,38 @@ body:not(.ag-rtl-disabled) .leading-relaxed h4 { font-size: var(--ag-font-size) 
 
 /* جهت‌بندی صریح راست‌چین */
 body:not(.ag-rtl-disabled) [dir="rtl"],
-body:not(.ag-rtl-disabled) [data-testid="conversation-row-sidebar"][dir="rtl"] {
+body:not(.ag-rtl-disabled) [data-testid="conversation-row-sidebar"][dir="rtl"],
+body:not(.ag-rtl-disabled) [data-testid="user-message-content"][dir="rtl"],
+body:not(.ag-rtl-disabled) [data-testid="user-message-bubble"][dir="rtl"],
+body:not(.ag-rtl-disabled) .agy-user-bubble[dir="rtl"],
+body:not(.ag-rtl-disabled) .whitespace-pre-wrap[dir="rtl"],
+body:not(.ag-rtl-disabled) [dir="rtl"] > .whitespace-pre-wrap,
+body:not(.ag-rtl-disabled) [data-testid="user-message-bubble"][dir="rtl"] .whitespace-pre-wrap,
+body:not(.ag-rtl-disabled) .agy-user-bubble[dir="rtl"] .whitespace-pre-wrap,
+body:not(.ag-rtl-disabled) [data-testid="user-message-content"][dir="rtl"] .whitespace-pre-wrap {
   direction: rtl !important;
   text-align: right !important;
   unicode-bidi: isolate !important;
 }
 
+/* تثبیت موقعیت حباب پیام کاربر در سمت راست چت */
+body:not(.ag-rtl-disabled) [data-testid="user-input-step"] {
+  direction: ltr !important;
+}
+body:not(.ag-rtl-disabled) [data-testid="user-input-step"] > div {
+  direction: ltr !important;
+}
+body:not(.ag-rtl-disabled) .agy-user-bubble-frame {
+  direction: ltr !important;
+}
+
 /* جهت‌بندی صریح چپ‌چین */
 body:not(.ag-rtl-disabled) [dir="ltr"],
-body:not(.ag-rtl-disabled) [data-testid="conversation-row-sidebar"][dir="ltr"] {
+body:not(.ag-rtl-disabled) [data-testid="conversation-row-sidebar"][dir="ltr"],
+body:not(.ag-rtl-disabled) [data-testid="user-message-content"][dir="ltr"],
+body:not(.ag-rtl-disabled) [data-testid="user-message-bubble"][dir="ltr"],
+body:not(.ag-rtl-disabled) .agy-user-bubble[dir="ltr"],
+body:not(.ag-rtl-disabled) .whitespace-pre-wrap[dir="ltr"] {
   direction: ltr !important;
   text-align: left !important;
 }
@@ -326,8 +349,12 @@ body:not(.ag-rtl-disabled) [data-testid="conversation-row-sidebar"][dir="ltr"] {
 /* مشخصه‌های منطقی برای لیست‌ها و نقل‌قول‌ها در جهت راست‌به‌چپ (خنثی‌سازی کامل pl-10 و pl-4 تیل‌ویند) */
 body:not(.ag-rtl-disabled) ul[dir="rtl"],
 body:not(.ag-rtl-disabled) ol[dir="rtl"],
+body:not(.ag-rtl-disabled) ul:has(> li[dir="rtl"]),
+body:not(.ag-rtl-disabled) ol:has(> li[dir="rtl"]),
 body:not(.ag-rtl-disabled) .leading-relaxed ul[dir="rtl"],
 body:not(.ag-rtl-disabled) .leading-relaxed ol[dir="rtl"],
+body:not(.ag-rtl-disabled) .leading-relaxed ul:has(> li[dir="rtl"]),
+body:not(.ag-rtl-disabled) .leading-relaxed ol:has(> li[dir="rtl"]),
 body:not(.ag-rtl-disabled) .leading-relaxed [dir="rtl"] > ul,
 body:not(.ag-rtl-disabled) .leading-relaxed [dir="rtl"] > ol {
   direction: rtl !important;
@@ -461,22 +488,53 @@ body:not(.ag-rtl-disabled) .artifact-card span.line-clamp-3[dir="ltr"] {
 }
 
 /* =========================================================
-   ۳. کادر تایپ کاربر (Lexical Editor)
+   ۳. کادر تایپ کاربر (Lexical Editor) و پیام‌های در صف
    ========================================================= */
 body:not(.ag-rtl-disabled) div[data-lexical-editor="true"],
-body:not(.ag-rtl-disabled) #antigravity\.agentSidePanelInputBox [contenteditable="true"] {
-  unicode-bidi: plaintext !important;
+body:not(.ag-rtl-disabled) [contenteditable="true"],
+body:not(.ag-rtl-disabled) #antigravity\.agentSidePanelInputBox [contenteditable="true"],
+body:not(.ag-rtl-disabled) [data-testid="agent-input-box"] [contenteditable="true"],
+body:not(.ag-rtl-disabled) .surface-composer [contenteditable="true"] {
   font-family: var(--ag-font-family) !important;
 }
 
-body:not(.ag-rtl-disabled) div[data-lexical-editor="true"] p[dir="rtl"],
-body:not(.ag-rtl-disabled) #antigravity\.agentSidePanelInputBox [contenteditable="true"] p[dir="rtl"] {
+/* کادر تایپ و پیام‌های در صف در حالت راست‌چین */
+body:not(.ag-rtl-disabled) div[data-lexical-editor="true"][dir="rtl"],
+body:not(.ag-rtl-disabled) [contenteditable="true"][dir="rtl"],
+body:not(.ag-rtl-disabled) #antigravity\.agentSidePanelInputBox [contenteditable="true"][dir="rtl"],
+body:not(.ag-rtl-disabled) [data-testid="agent-input-box"] [contenteditable="true"][dir="rtl"],
+body:not(.ag-rtl-disabled) .surface-composer [contenteditable="true"][dir="rtl"],
+body:not(.ag-rtl-disabled) [data-testid="agent-input-box"] [dir="rtl"],
+body:not(.ag-rtl-disabled) .surface-composer [dir="rtl"],
+body:not(.ag-rtl-disabled) [data-testid="agent-input-box"] .hidden-if-empty [dir="rtl"],
+body:not(.ag-rtl-disabled) [class*="queued-message"][dir="rtl"],
+body:not(.ag-rtl-disabled) [data-testid*="queued"][dir="rtl"],
+body:not(.ag-rtl-disabled) [data-testid*="queue"][dir="rtl"] {
+  direction: rtl !important;
+  text-align: right !important;
+  unicode-bidi: isolate !important;
+}
+
+body:not(.ag-rtl-disabled) div[data-lexical-editor="true"][dir="rtl"] p,
+body:not(.ag-rtl-disabled) [contenteditable="true"][dir="rtl"] p,
+body:not(.ag-rtl-disabled) #antigravity\.agentSidePanelInputBox [contenteditable="true"][dir="rtl"] p,
+body:not(.ag-rtl-disabled) [data-testid="agent-input-box"] [contenteditable="true"][dir="rtl"] p,
+body:not(.ag-rtl-disabled) .surface-composer [contenteditable="true"][dir="rtl"] p,
+body:not(.ag-rtl-disabled) [contenteditable="true"][dir="rtl"] span,
+body:not(.ag-rtl-disabled) [contenteditable="true"] p[dir="rtl"],
+body:not(.ag-rtl-disabled) [contenteditable="true"] span[dir="rtl"] {
   direction: rtl !important;
   text-align: right !important;
 }
 
+body:not(.ag-rtl-disabled) div[data-lexical-editor="true"][dir="ltr"],
+body:not(.ag-rtl-disabled) [contenteditable="true"][dir="ltr"],
+body:not(.ag-rtl-disabled) #antigravity\.agentSidePanelInputBox [contenteditable="true"][dir="ltr"],
+body:not(.ag-rtl-disabled) [data-testid="agent-input-box"] [contenteditable="true"][dir="ltr"],
+body:not(.ag-rtl-disabled) .surface-composer [contenteditable="true"][dir="ltr"],
 body:not(.ag-rtl-disabled) div[data-lexical-editor="true"] p[dir="ltr"],
-body:not(.ag-rtl-disabled) #antigravity\.agentSidePanelInputBox [contenteditable="true"] p[dir="ltr"] {
+body:not(.ag-rtl-disabled) #antigravity\.agentSidePanelInputBox [contenteditable="true"] p[dir="ltr"],
+body:not(.ag-rtl-disabled) [contenteditable="true"] p[dir="ltr"] {
   direction: ltr !important;
   text-align: left !important;
 }
@@ -529,6 +587,16 @@ button.review-button,
 button.review-button *,
 .files-changed-header,
 .files-changed-header *,
+[data-testid*="diff"],
+[data-testid*="diff"] *,
+[data-testid*="tool-group"],
+[data-testid*="tool-group"] *,
+[class*="diff-stat"],
+[class*="diff-stat"] *,
+.git-diff-header,
+.git-diff-header *,
+button[data-testid="titlebar-more-actions"],
+[data-testid="pane-titlebar-toolbar"] *,
 [data-testid="conversation-view"] button[class*="text-left"],
 [data-testid="conversation-view"] button[class*="text-left"] *,
 [role="article"] button[class*="text-left"],

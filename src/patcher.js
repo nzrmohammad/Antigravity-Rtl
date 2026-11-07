@@ -311,15 +311,38 @@ body:not(.ag-rtl-disabled) .leading-relaxed h4 { font-size: var(--ag-font-size) 
 
 /* جهت‌بندی صریح راست‌چین */
 body:not(.ag-rtl-disabled) [dir="rtl"],
-body:not(.ag-rtl-disabled) [data-testid="conversation-row-sidebar"][dir="rtl"] {
+body:not(.ag-rtl-disabled) [data-testid="conversation-row-sidebar"][dir="rtl"],
+body:not(.ag-rtl-disabled) [data-testid="user-message-content"][dir="rtl"],
+body:not(.ag-rtl-disabled) [data-testid="user-message-bubble"][dir="rtl"],
+body:not(.ag-rtl-disabled) .agy-user-bubble[dir="rtl"],
+body:not(.ag-rtl-disabled) .whitespace-pre-wrap[dir="rtl"],
+body:not(.ag-rtl-disabled) [dir="rtl"] > .whitespace-pre-wrap,
+body:not(.ag-rtl-disabled) [data-testid="user-message-bubble"][dir="rtl"] .whitespace-pre-wrap,
+body:not(.ag-rtl-disabled) .agy-user-bubble[dir="rtl"] .whitespace-pre-wrap,
+body:not(.ag-rtl-disabled) [data-testid="user-message-content"][dir="rtl"] .whitespace-pre-wrap {
   direction: rtl !important;
   text-align: right !important;
   unicode-bidi: isolate !important;
 }
 
+/* تثبیت موقعیت حباب پیام کاربر در سمت راست چت */
+body:not(.ag-rtl-disabled) [data-testid="user-input-step"] {
+  direction: ltr !important;
+}
+body:not(.ag-rtl-disabled) [data-testid="user-input-step"] > div {
+  direction: ltr !important;
+}
+body:not(.ag-rtl-disabled) .agy-user-bubble-frame {
+  direction: ltr !important;
+}
+
 /* جهت‌بندی صریح چپ‌چین */
 body:not(.ag-rtl-disabled) [dir="ltr"],
-body:not(.ag-rtl-disabled) [data-testid="conversation-row-sidebar"][dir="ltr"] {
+body:not(.ag-rtl-disabled) [data-testid="conversation-row-sidebar"][dir="ltr"],
+body:not(.ag-rtl-disabled) [data-testid="user-message-content"][dir="ltr"],
+body:not(.ag-rtl-disabled) [data-testid="user-message-bubble"][dir="ltr"],
+body:not(.ag-rtl-disabled) .agy-user-bubble[dir="ltr"],
+body:not(.ag-rtl-disabled) .whitespace-pre-wrap[dir="ltr"] {
   direction: ltr !important;
   text-align: left !important;
 }
@@ -328,8 +351,12 @@ body:not(.ag-rtl-disabled) [data-testid="conversation-row-sidebar"][dir="ltr"] {
 /* مشخصه‌های منطقی برای لیست‌ها و نقل‌قول‌ها در جهت راست‌به‌چپ (خنثی‌سازی کامل pl-10 و pl-4 تیل‌ویند) */
 body:not(.ag-rtl-disabled) ul[dir="rtl"],
 body:not(.ag-rtl-disabled) ol[dir="rtl"],
+body:not(.ag-rtl-disabled) ul:has(> li[dir="rtl"]),
+body:not(.ag-rtl-disabled) ol:has(> li[dir="rtl"]),
 body:not(.ag-rtl-disabled) .leading-relaxed ul[dir="rtl"],
 body:not(.ag-rtl-disabled) .leading-relaxed ol[dir="rtl"],
+body:not(.ag-rtl-disabled) .leading-relaxed ul:has(> li[dir="rtl"]),
+body:not(.ag-rtl-disabled) .leading-relaxed ol:has(> li[dir="rtl"]),
 body:not(.ag-rtl-disabled) .leading-relaxed [dir="rtl"] > ul,
 body:not(.ag-rtl-disabled) .leading-relaxed [dir="rtl"] > ol {
   direction: rtl !important;
@@ -463,22 +490,53 @@ body:not(.ag-rtl-disabled) .artifact-card span.line-clamp-3[dir="ltr"] {
 }
 
 /* =========================================================
-   ۳. کادر تایپ کاربر (Lexical Editor)
+   ۳. کادر تایپ کاربر (Lexical Editor) و پیام‌های در صف
    ========================================================= */
 body:not(.ag-rtl-disabled) div[data-lexical-editor="true"],
-body:not(.ag-rtl-disabled) #antigravity\\.agentSidePanelInputBox [contenteditable="true"] {
-  unicode-bidi: plaintext !important;
+body:not(.ag-rtl-disabled) [contenteditable="true"],
+body:not(.ag-rtl-disabled) #antigravity\\.agentSidePanelInputBox [contenteditable="true"],
+body:not(.ag-rtl-disabled) [data-testid="agent-input-box"] [contenteditable="true"],
+body:not(.ag-rtl-disabled) .surface-composer [contenteditable="true"] {
   font-family: var(--ag-font-family) !important;
 }
 
-body:not(.ag-rtl-disabled) div[data-lexical-editor="true"] p[dir="rtl"],
-body:not(.ag-rtl-disabled) #antigravity\\.agentSidePanelInputBox [contenteditable="true"] p[dir="rtl"] {
+/* کادر تایپ و پیام‌های در صف در حالت راست‌چین */
+body:not(.ag-rtl-disabled) div[data-lexical-editor="true"][dir="rtl"],
+body:not(.ag-rtl-disabled) [contenteditable="true"][dir="rtl"],
+body:not(.ag-rtl-disabled) #antigravity\\.agentSidePanelInputBox [contenteditable="true"][dir="rtl"],
+body:not(.ag-rtl-disabled) [data-testid="agent-input-box"] [contenteditable="true"][dir="rtl"],
+body:not(.ag-rtl-disabled) .surface-composer [contenteditable="true"][dir="rtl"],
+body:not(.ag-rtl-disabled) [data-testid="agent-input-box"] [dir="rtl"],
+body:not(.ag-rtl-disabled) .surface-composer [dir="rtl"],
+body:not(.ag-rtl-disabled) [data-testid="agent-input-box"] .hidden-if-empty [dir="rtl"],
+body:not(.ag-rtl-disabled) [class*="queued-message"][dir="rtl"],
+body:not(.ag-rtl-disabled) [data-testid*="queued"][dir="rtl"],
+body:not(.ag-rtl-disabled) [data-testid*="queue"][dir="rtl"] {
+  direction: rtl !important;
+  text-align: right !important;
+  unicode-bidi: isolate !important;
+}
+
+body:not(.ag-rtl-disabled) div[data-lexical-editor="true"][dir="rtl"] p,
+body:not(.ag-rtl-disabled) [contenteditable="true"][dir="rtl"] p,
+body:not(.ag-rtl-disabled) #antigravity\\.agentSidePanelInputBox [contenteditable="true"][dir="rtl"] p,
+body:not(.ag-rtl-disabled) [data-testid="agent-input-box"] [contenteditable="true"][dir="rtl"] p,
+body:not(.ag-rtl-disabled) .surface-composer [contenteditable="true"][dir="rtl"] p,
+body:not(.ag-rtl-disabled) [contenteditable="true"][dir="rtl"] span,
+body:not(.ag-rtl-disabled) [contenteditable="true"] p[dir="rtl"],
+body:not(.ag-rtl-disabled) [contenteditable="true"] span[dir="rtl"] {
   direction: rtl !important;
   text-align: right !important;
 }
 
+body:not(.ag-rtl-disabled) div[data-lexical-editor="true"][dir="ltr"],
+body:not(.ag-rtl-disabled) [contenteditable="true"][dir="ltr"],
+body:not(.ag-rtl-disabled) #antigravity\\.agentSidePanelInputBox [contenteditable="true"][dir="ltr"],
+body:not(.ag-rtl-disabled) [data-testid="agent-input-box"] [contenteditable="true"][dir="ltr"],
+body:not(.ag-rtl-disabled) .surface-composer [contenteditable="true"][dir="ltr"],
 body:not(.ag-rtl-disabled) div[data-lexical-editor="true"] p[dir="ltr"],
-body:not(.ag-rtl-disabled) #antigravity\\.agentSidePanelInputBox [contenteditable="true"] p[dir="ltr"] {
+body:not(.ag-rtl-disabled) #antigravity\\.agentSidePanelInputBox [contenteditable="true"] p[dir="ltr"],
+body:not(.ag-rtl-disabled) [contenteditable="true"] p[dir="ltr"] {
   direction: ltr !important;
   text-align: left !important;
 }
@@ -531,6 +589,16 @@ button.review-button,
 button.review-button *,
 .files-changed-header,
 .files-changed-header *,
+[data-testid*="diff"],
+[data-testid*="diff"] *,
+[data-testid*="tool-group"],
+[data-testid*="tool-group"] *,
+[class*="diff-stat"],
+[class*="diff-stat"] *,
+.git-diff-header,
+.git-diff-header *,
+button[data-testid="titlebar-more-actions"],
+[data-testid="pane-titlebar-toolbar"] *,
 [data-testid="conversation-view"] button[class*="text-left"],
 [data-testid="conversation-view"] button[class*="text-left"] *,
 [role="article"] button[class*="text-left"],
@@ -1687,7 +1755,7 @@ try {
         }
     }
 
-    // --- Smart Direction Subsystem (70% Latin Threshold & Letter-Only Counting) ---
+    // --- Smart Direction Subsystem (Multi-heuristic & Technical Prefix Support) ---
     function detectSmartDirection(text, fallbackDir) {
         if (!text) return null;
         const trimmed = text.trim();
@@ -1713,36 +1781,149 @@ try {
             return 'rtl';
         }
 
+        // Technical prefix pattern (e.g. "filename.ext: Persian explanation" or "token - Persian...")
+        const prefixMatch = trimmed.match(/^[^:\-–—\n]+[:\-–—]\s*(.*)$/);
+        if (prefixMatch && prefixMatch[1]) {
+            const rest = prefixMatch[1].trim();
+            const restPersian = (rest.match(/[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/g) || []).length;
+            const restLatin = (rest.match(/[a-zA-Z]/g) || []).length;
+            if (restPersian > 0) {
+                const restFirst = rest.match(/[a-zA-Z؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/);
+                if (restFirst && /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/.test(restFirst[0])) {
+                    return 'rtl';
+                }
+                if ((restPersian / (restPersian + restLatin)) >= 0.3) {
+                    return 'rtl';
+                }
+            }
+        }
+
+        // Word-level analysis: count Persian words vs total words
+        const persianWords = trimmed.match(/[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]{2,}/g) || [];
+        const words = trimmed.split(/\s+/).filter(w => /[a-zA-Z؀-ۿ]/.test(w));
+        if (persianWords.length >= 2 && (persianWords.length / Math.max(words.length, 1)) >= 0.25) {
+            return 'rtl';
+        }
+
+        // Lowered threshold: if Persian letters constitute >= 30% of total letters
+        const persianRatio = persianCount / totalLetters;
+        if (persianRatio >= 0.3) {
+            return 'rtl';
+        }
+
         // When starting with Latin or symbols: only LTR if Latin letters are >= 70% of all letters
         const latinRatio = latinCount / totalLetters;
         if (latinRatio >= 0.7) {
             return 'ltr';
         }
+
         return 'rtl';
     }
 
+    function isInsideTechnicalContainer(node) {
+        if (!node || node.nodeType !== 1) return false;
+        return !!node.closest(
+            'pre, code, kbd, samp, var, ' +
+            '.monaco-editor, .monaco-diff-editor, ' +
+            '.terminal, .xterm, .integrated-terminal, ' +
+            '[class*="terminal"], [class*="console"], ' +
+            '.debug-console, ' +
+            '.suggest-widget, .parameter-hints-widget, ' +
+            '.suggest-details, ' +
+            '[data-testid="terminal"], [data-testid="interactive-terminal"], ' +
+            '[data-testid="code-block"], [data-testid="monaco-editor"], ' +
+            '[data-mode-id], ' +
+            'span.duration, div.duration, span[class*="duration"], div[class*="duration"], ' +
+            'span[class*="elapsed"], div[class*="elapsed"], ' +
+            'div[data-testid="status-bar"], ' +
+            '[data-testid*="diff"], [data-testid*="tool"], [data-testid*="collapsible"], ' +
+            'button, [role="button"], .agy-button, [class*="diff-stat"], ' +
+            '.files-changed-header, button.review-button, ' +
+            '.katex, .katex-display, math, ' +
+            '#ag-appearance-popover'
+        );
+    }
+
+    function updateInputDirection(el) {
+        if (!el) return;
+        const editor = (el.getAttribute && el.getAttribute('contenteditable') === 'true') ? el : (el.closest && el.closest('[contenteditable="true"], [data-lexical-editor="true"]'));
+        if (!editor) return;
+
+        const text = (editor.tagName === 'INPUT' || editor.tagName === 'TEXTAREA') ? editor.value : (editor.textContent || '');
+        if (!text || !text.trim()) {
+            editor.setAttribute('dir', 'ltr');
+            const ps = editor.querySelectorAll ? editor.querySelectorAll('p') : [];
+            for (let i = 0; i < ps.length; i++) ps[i].setAttribute('dir', 'ltr');
+            return;
+        }
+
+        const dir = detectSmartDirection(text);
+        if (dir) {
+            editor.setAttribute('dir', dir);
+            const ps = editor.querySelectorAll ? editor.querySelectorAll('p') : [];
+            for (let i = 0; i < ps.length; i++) ps[i].setAttribute('dir', dir);
+        }
+    }
+
     function applySmartDirectionToElement(el) {
-        if (document.body && document.body.classList.contains('ag-rtl-disabled')) return;
         if (!el || el.nodeType !== 1) return;
-        if (el.matches('pre, pre *, .monaco-editor, .monaco-editor *, .terminal, .terminal-wrapper, [data-testid*="tool"], [data-testid*="collapsible"], button.review-button, button.review-button *, .files-changed-header, .files-changed-header *, .katex, .katex *, .katex-display, .katex-display *, math, math *')) return;
+        if (document.body && document.body.classList.contains('ag-rtl-disabled')) return;
+        if (isInsideTechnicalContainer(el)) return;
 
         const currentText = el.textContent || '';
         if (el.__ag_last_text === currentText && el.hasAttribute('dir')) return;
         el.__ag_last_text = currentText;
 
-        if (el.matches && el.matches('[data-testid="conversation-row-sidebar"]')) {
-            const titleEl = el.querySelector('span.truncate, .truncate');
-            const dir = detectSmartDirection((titleEl ? titleEl.textContent : el.textContent) || '');
+        if (el.getAttribute('data-testid') === 'conversation-row-sidebar' || (el.closest && el.closest('[data-testid="conversation-row-sidebar"]'))) {
+            const row = el.getAttribute('data-testid') === 'conversation-row-sidebar' ? el : el.closest('[data-testid="conversation-row-sidebar"]');
+            const dir = detectSmartDirection(row.textContent || '');
             if (dir) {
-                el.setAttribute('dir', dir);
-                if (titleEl) titleEl.setAttribute('dir', dir);
+                row.setAttribute('dir', dir);
+                const spans = row.querySelectorAll('span, .truncate');
+                for (let i = 0; i < spans.length; i++) spans[i].setAttribute('dir', dir);
             }
             return;
         }
 
-        if (el.tagName === 'CODE') {
+        if (el.tagName === 'P' && el.closest && el.closest('div[data-lexical-editor="true"], #antigravity\\.agentSidePanelInputBox [contenteditable="true"]')) {
+            const dir = detectSmartDirection(el.textContent || '');
+            if (dir) el.setAttribute('dir', dir);
+            return;
+        }
+
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            if (/[؀-ۿ]/.test(el.value || '')) el.setAttribute('dir', 'rtl');
+            else el.setAttribute('dir', 'ltr');
+            return;
+        }
+
+        if (el.getAttribute('contenteditable') === 'true') {
             if (/[؀-ۿ]/.test(el.textContent || '')) el.setAttribute('dir', 'rtl');
             else el.setAttribute('dir', 'ltr');
+            return;
+        }
+
+        if (el.getAttribute('data-testid') === 'user-message-content' ||
+            el.getAttribute('data-testid') === 'user-message-bubble' ||
+            el.getAttribute('data-testid') === 'user-input-step' ||
+            (el.classList && (el.classList.contains('agy-user-bubble') || el.classList.contains('whitespace-pre-wrap') || el.classList.contains('agy-user-bubble-frame')))) {
+            const dir = detectSmartDirection(el.textContent || '');
+            if (dir) {
+                if (el.getAttribute('data-testid') !== 'user-input-step' && (!el.classList || !el.classList.contains('agy-user-bubble-frame'))) {
+                    el.setAttribute('dir', dir);
+                }
+                const bubble = el.querySelector ? el.querySelector('[data-testid="user-message-bubble"], .agy-user-bubble') : null;
+                if (bubble) bubble.setAttribute('dir', dir);
+                const content = el.querySelector ? el.querySelector('[data-testid="user-message-content"]') : null;
+                if (content) content.setAttribute('dir', dir);
+                const children = el.querySelectorAll ? el.querySelectorAll('.whitespace-pre-wrap') : [];
+                for (let i = 0; i < children.length; i++) children[i].setAttribute('dir', dir);
+            }
+            return;
+        }
+
+        if (el.closest && (el.closest('[data-testid="agent-input-box"]') || el.closest('.surface-composer'))) {
+            updateInputDirection(el);
             return;
         }
 
@@ -1756,7 +1937,7 @@ try {
         }
 
         if ((el.classList && el.classList.contains('line-clamp-3')) || (el.classList && el.classList.contains('text-secondary-foreground'))) {
-            if (el.closest('.artifact-card')) {
+            if (el.closest && el.closest('.artifact-card')) {
                 const dir = detectSmartDirection(el.textContent || '');
                 if (dir) el.setAttribute('dir', dir);
                 return;
@@ -1787,13 +1968,37 @@ try {
                 }
                 const parentList = el.parentElement;
                 if (parentList && (parentList.tagName === 'UL' || parentList.tagName === 'OL')) {
-                    if (!parentList.getAttribute('dir')) parentList.setAttribute('dir', dir);
+                    if (dir === 'rtl' || !parentList.getAttribute('dir')) {
+                        parentList.setAttribute('dir', dir);
+                    }
                 }
             }
             return;
         }
 
         if (el.tagName === 'UL' || el.tagName === 'OL') {
+            const lis = el.querySelectorAll('li');
+            let rtlCount = 0;
+            for (let i = 0; i < lis.length; i++) {
+                const liDir = lis[i].getAttribute('dir') || detectSmartDirection(lis[i].textContent || '');
+                if (liDir === 'rtl') rtlCount++;
+            }
+            if (rtlCount > 0 && rtlCount >= lis.length / 2) {
+                el.setAttribute('dir', 'rtl');
+            } else if (lis.length === 0) {
+                const dir = detectSmartDirection(el.textContent || '');
+                if (dir) el.setAttribute('dir', dir);
+            }
+            return;
+        }
+
+        if (el.tagName === 'P') {
+            const dir = detectSmartDirection(el.textContent || '');
+            if (dir) el.setAttribute('dir', dir);
+            return;
+        }
+
+        if (/^H[1-6]$/.test(el.tagName)) {
             const dir = detectSmartDirection(el.textContent || '');
             if (dir) el.setAttribute('dir', dir);
             return;
@@ -1812,34 +2017,34 @@ try {
             return;
         }
 
-        if (/^H[1-6]|P$/.test(el.tagName)) {
-            const dir = detectSmartDirection(el.textContent || '');
-            if (dir) el.setAttribute('dir', dir);
-            return;
-        }
-
-        if (el.classList && el.classList.contains('whitespace-pre-wrap') && el.closest('[data-testid="user-input-step"]')) {
-            const dir = detectSmartDirection(el.textContent || '');
-            if (dir) el.setAttribute('dir', dir);
-            return;
-        }
-
-        if (el.classList && el.classList.contains('leading-relaxed')) {
-            const style = window.getComputedStyle ? window.getComputedStyle(el) : null;
-            const hasScroll = style && (style.overflowY === 'auto' || style.overflowY === 'scroll');
-            if (!hasScroll) {
-                const dir = detectSmartDirection(currentText);
-                if (dir) el.setAttribute('dir', dir);
+        if (el.tagName === 'DIV') {
+            const isChatMessage = el.getAttribute('data-testid') === 'chat-message' ||
+                                 (el.className && typeof el.className === 'string' &&
+                                  (el.className.includes('chat-message') || el.className.includes('prose') || el.className.includes('leading-relaxed')));
+            if (isChatMessage) {
+                const style = window.getComputedStyle ? window.getComputedStyle(el) : null;
+                const hasScroll = style && (style.overflowY === 'auto' || style.overflowY === 'scroll');
+                if (!hasScroll) {
+                    const dir = detectSmartDirection(el.textContent || '');
+                    if (dir) el.setAttribute('dir', dir);
+                }
             }
         }
     }
 
     function processAllSmartRTL(root) {
+        if (!root || !root.querySelectorAll) return;
         if (document.body && document.body.classList.contains('ag-rtl-disabled')) return;
-        const base = root || document.body;
-        if (!base) return;
-        applySmartDirectionToElement(base);
-        const selector = 'p, h1, h2, h3, h4, h5, h6, li, ul, ol, blockquote, table, .artifact-card, span.line-clamp-3, [data-testid="user-input-step"] .whitespace-pre-wrap, [data-testid="conversation-row-sidebar"], [data-testid="conversation-view"] p';
+
+        const base = (root.nodeType === 9 || root === document.body) ? document : root;
+        const selector = 'p, h1, h2, h3, h4, h5, h6, li, ul, ol, blockquote, table, ' +
+                         'div.artifact-card, div.artifact-card .text-secondary-foreground, ' +
+                         '[data-testid="conversation-row-sidebar"], [data-testid="conversation-row-sidebar"] span, [data-testid="conversation-row-sidebar"] .truncate, ' +
+                         '[data-testid="user-message-content"], [data-testid="user-message-bubble"], [data-testid="user-input-step"], .agy-user-bubble, .whitespace-pre-wrap, ' +
+                         'div[data-lexical-editor="true"], [data-testid="agent-input-box"] [contenteditable="true"], .surface-composer [contenteditable="true"], ' +
+                         'div[data-lexical-editor="true"] p, #antigravity\\.agentSidePanelInputBox [contenteditable="true"] p, ' +
+                         '[data-testid="agent-input-box"] .hidden-if-empty *, ' +
+                         'input, textarea, [contenteditable="true"]';
         try {
             const elements = base.querySelectorAll(selector);
             for (let i = 0; i < elements.length; i++) {
@@ -1847,7 +2052,6 @@ try {
             }
         } catch(e) {}
     }
-
     // --- Menubar Button & Settings Popover ---
     let popoverInstance = null;
 
@@ -1865,10 +2069,9 @@ try {
 
         const btn = document.createElement('button');
         btn.id = 'ag-appearance-menu-btn';
-        btn.className = 'inline-flex items-center font-medium transition-colors select-none outline-none cursor-pointer justify-center disabled:opacity-50 bg-secondary/80 hover:bg-secondary text-foreground h-7 text-xs rounded-md gap-1.5 px-3 border border-border/40 select-none';
+        btn.className = 'agy-button agy-button-sm inline-flex items-center font-medium transition-colors select-none outline-none cursor-pointer justify-center disabled:opacity-50 bg-transparent text-muted-foreground hover:text-foreground hover:bg-secondary focus-visible:text-foreground focus-visible:bg-secondary h-7 text-sm rounded-md gap-1.5 px-2.5';
         btn.setAttribute('data-testid', 'title-menu-bar-item');
         btn.title = 'Appearance & Smart RTL Settings';
-        btn.style.cssText = 'font-size: 12.5px; font-weight: 600; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;';
         btn.innerHTML = \`
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.9; color:#60a5fa;">
                 <circle cx="12" cy="12" r="3"></circle>
@@ -1909,8 +2112,9 @@ try {
                 top: \${rect.bottom + 6}px;
                 left: \${Math.min(rect.left, window.innerWidth - 365)}px;
                 width: 350px;
-                max-height: 85vh;
+                max-height: calc(100vh - \${rect.bottom + 16}px);
                 overflow-y: auto;
+                box-sizing: border-box;
                 background: rgba(22, 22, 26, 0.96);
                 backdrop-filter: blur(20px);
                 -webkit-backdrop-filter: blur(20px);
@@ -1919,7 +2123,7 @@ try {
                 font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 direction: ltr;
                 text-align: left;
-                padding: 16px;
+                padding: 14px;
                 border-radius: 14px;
                 box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
                 z-index: 999999;
@@ -1927,7 +2131,7 @@ try {
             \`;
 
             popoverInstance.innerHTML = \`
-                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 11px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span style="font-size: 15px; font-weight: 700; color: #fff; letter-spacing: 0.2px;">Appearance & Smart RTL</span>
                     </div>
@@ -1935,7 +2139,7 @@ try {
                 </div>
 
                 <!-- RTL Toggle -->
-                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 11px 14px; border-radius: 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 9px 12px; border-radius: 10px; margin-bottom: 9px; border: 1px solid rgba(255,255,255,0.08);">
                     <div>
                         <div style="font-size: 13.5px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px;">
                             <span>Smart RTL</span>
@@ -1949,7 +2153,7 @@ try {
                 </div>
 
                 <!-- Persian Digits Toggle -->
-                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 11px 14px; border-radius: 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 9px 12px; border-radius: 10px; margin-bottom: 9px; border: 1px solid rgba(255,255,255,0.08);">
                     <div>
                         <div style="font-size: 13.5px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px;">
                             <span>Persian Digits</span>
@@ -1963,7 +2167,7 @@ try {
                 </div>
 
                 <!-- Justify Text Toggle -->
-                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 11px 14px; border-radius: 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 9px 12px; border-radius: 10px; margin-bottom: 9px; border: 1px solid rgba(255,255,255,0.08);">
                     <div>
                         <div style="font-size: 13.5px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px;">
                             <span>Justify Text</span>
@@ -1977,7 +2181,7 @@ try {
                 </div>
 
                 <!-- Anti-Sanction & Proxy Shield Card -->
-                <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;">
+                <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px;">
                     <div style="display: flex; align-items: center; justify-content: space-between;">
                         <div>
                             <div style="font-size: 13.5px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px;">
@@ -2040,7 +2244,7 @@ try {
                 </div>
 
                 <!-- Font Family Selection -->
-                <div style="margin-bottom: 14px;">
+                <div style="margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
                         <label style="font-size: 13px; font-weight: 600; color: #e4e4e7;">Font Family:</label>
                         <span id="ag-font-family-badge" style="font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600;"></span>
@@ -2066,7 +2270,7 @@ try {
                 </div>
 
                 <!-- Code & Terminal Font Selection -->
-                <div style="margin-bottom: 14px;">
+                <div style="margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
                         <label style="font-size: 13px; font-weight: 600; color: #e4e4e7;">Code & Terminal Font:</label>
                         <span id="ag-code-font-badge" style="font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600;"></span>
@@ -2085,7 +2289,7 @@ try {
                 </div>
 
                 <!-- Font Size Stepper & Slider -->
-                <div style="margin-bottom: 14px;">
+                <div style="margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
                         <span style="font-size: 13px; font-weight: 600; color: #e4e4e7;">Font Size:</span>
                         <span id="ag-font-size-badge" style="font-size: 12.5px; font-weight: 700; color: #60a5fa; background: rgba(59, 130, 246, 0.18); border: 1px solid rgba(59,130,246,0.3); padding: 2px 9px; border-radius: 5px;">\${currentSettings.fontSize}px</span>
@@ -2098,7 +2302,7 @@ try {
                 </div>
 
                 <!-- Line Height -->
-                <div style="margin-bottom: 16px;">
+                <div style="margin-bottom: 12px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
                         <span style="font-size: 13px; font-weight: 600; color: #e4e4e7;">Line Spacing:</span>
                     </div>
@@ -2110,7 +2314,7 @@ try {
                 </div>
 
                 <!-- Footer Actions -->
-                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
                     <button id="ag-reset-defaults" style="background: transparent; border: none; color: #a1a1aa; font-size: 12px; font-weight: 500; cursor: pointer; padding: 5px 8px; border-radius: 6px; display: flex; align-items: center; gap: 5px; font-family: inherit; transition: color .15s;">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                         <span>Reset Defaults</span>
@@ -2625,9 +2829,13 @@ try {
         }
     });
 
+    document.addEventListener('input', (e) => updateInputDirection(e.target), true);
+    document.addEventListener('keyup', (e) => updateInputDirection(e.target), true);
+    document.addEventListener('compositionend', (e) => updateInputDirection(e.target), true);
+
     function startObserver() {
         if (document.body) {
-            observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+            observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class', 'data-testid'] });
             processAllSmartRTL(document.body);
         } else {
             setTimeout(startObserver, 50);

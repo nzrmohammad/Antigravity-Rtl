@@ -140,11 +140,62 @@ class TestParity(unittest.TestCase):
             "10808",
             "10809",
             "2080",
+            "user-message-content",
+            "whitespace-pre-wrap",
+            "updateInputDirection",
+            "isInsideTechnicalContainer",
+            "agy-button agy-button-sm",
+            "calc(100vh",
         ]
         for feat in essential_features:
             self.assertIn(feat, py_injection, f"Feature '{feat}' missing in Python CodeInjector")
             self.assertIn(feat, js_injection, f"Feature '{feat}' missing in patcher.js direct client payload")
 
+    def test_smart_direction_bilingual_examples(self):
+        """Verifies that English-starting Persian sentences (technical tokens, commit logs) detect as RTL."""
+        import subprocess
+        import json
+
+        with open(self.patcher_js_path, "r", encoding="utf-8") as f:
+            code = f.read()
+
+        fn_marker = "function detectSmartDirection(text, fallbackDir) {"
+        start_idx = code.find(fn_marker)
+        self.assertNotEqual(start_idx, -1, "detectSmartDirection not found in patcher.js")
+        end_marker = "function isInsideTechnicalContainer(node) {"
+        end_idx = code.find(end_marker, start_idx)
+        self.assertNotEqual(end_idx, -1, "isInsideTechnicalContainer not found in patcher.js")
+        fn_code = code[start_idx:end_idx]
+
+        runner_script = f"""
+{fn_code}
+
+const userExamples = [
+    '.env.example و README.md: اجباری شدن BACKUP_PASSWORD و هماهنگی زمانبندی.',
+    'app.html و admin.html: اعداد انگلیسی بازه‌ها (7 روز، 30 روز، هفته 1 تا 4) و اصلاح برچسب مجموع مصرف دیروز.',
+    'user_subscription_detail.py: بازگرداندن بازه‌های توزیع مصرف به ۱۲ بازهٔ ۲ ساعته.',
+    'app.js و charts.js و admin_charts.js: هماهنگی داده‌های ۲ ساعته و ارقام انگلیسی نمودارها و رده‌بندی.',
+    'tailwind.config.js، base.css، components.css و tailwind.min.css: اعمال یکپارچهٔ فونت وزیرمتن و جلوگیری از بازگشت به فونت پیش‌فرض سیستم در دسکتاپ.'
+];
+
+const results = userExamples.map(s => detectSmartDirection(s));
+const engResults = [
+    detectSmartDirection('const x = 123; // calculate value'),
+    detectSmartDirection('This is a completely English sentence explaining code.'),
+    detectSmartDirection('git commit -m "feat: added new feature"')
+];
+
+console.log(JSON.stringify({{ rtl: results, ltr: engResults }}));
+"""
+        proc = subprocess.run(["node", "-e", runner_script], capture_output=True, text=True, encoding="utf-8")
+        self.assertEqual(proc.returncode, 0, f"Node script execution failed: {proc.stderr}")
+        out = json.loads(proc.stdout.strip())
+
+        for idx, res in enumerate(out["rtl"]):
+            self.assertEqual(res, "rtl", f"User example {idx + 1} failed to detect as RTL")
+
+        for idx, res in enumerate(out["ltr"]):
+            self.assertEqual(res, "ltr", f"English example {idx + 1} failed to detect as LTR")
 
 
 if __name__ == "__main__":

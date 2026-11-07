@@ -5,7 +5,7 @@
 [![Version: v1.2.0](https://img.shields.io/badge/Version-v1.2.0-blue.svg?style=for-the-badge)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 [![Platform: Windows | macOS | Linux](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-0078D6?style=for-the-badge&logo=windows)](https://microsoft.com)
-[![Tested on: Antigravity v2.28.0+](https://img.shields.io/badge/Antigravity-v2.28.0+%20Verified-00C853?style=for-the-badge&logo=google)](https://deepmind.google)
+[![Tested on: Antigravity v2.29.0+](https://img.shields.io/badge/Antigravity-v2.29.0+%20Verified-00C853?style=for-the-badge&logo=google)](https://deepmind.google)
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Offline Fonts](https://img.shields.io/badge/Embedded%20Fonts-100%25%20Offline-FF6B6B?style=for-the-badge)](fonts/)
 
@@ -69,7 +69,7 @@ Before running the patcher, ensure your system meets the following requirements:
 
 | Requirement | Specification | Notes |
 |---|---|---|
-| **Target Application** | **Google Antigravity IDE (v2.28.0+)** | Verified on modern v2.x builds |
+| **Target Application** | **Google Antigravity IDE (v2.29.0+)** | Verified on modern v2.x builds |
 | **Operating System** | Windows 10 / 11 (64-bit), macOS 11+, or Linux | Cross-platform directory & process handling |
 | **Runtime Environment** | **Python 3.8+** *OR* **Node.js 16+** | Pure standard library — zero external dependencies |
 | **Network** | **100% Offline** | Zero CDN dependencies; all fonts & assets embedded locally |
@@ -79,8 +79,9 @@ Before running the patcher, ensure your system meets the following requirements:
 
 ## Key Features & Highlights
 
-### 🎯 Intelligent Bidirectional Engine (Smart RTL with 70% Letter Ratio)
-- **Letter-Only Density Ratio**: Strips punctuation, symbols, and digits to analyze purely alphabetical characters. Lines are rendered LTR only if Latin letters constitute $\ge 70\%$ of all letters, guaranteeing that Persian sentences with English terms, package names, or commands remain perfectly aligned to the right.
+### 🎯 Intelligent Bidirectional Engine (Smart RTL with Technical Token & Prefix Awareness)
+- **Multi-Heuristic Direction Detection**: Analyzes alphabetical density, technical prefix patterns (`filename.ext: Persian explanation`), and Persian-to-total word ratios. Lines starting with English filenames, variables, git commit tokens, or command paths are seamlessly recognized and aligned to the right when followed by Persian text.
+- **Full Conversation & User Prompt Coverage**: Dynamically detects and auto-directs assistant messages, user bubbles (`[data-testid="user-message-content"]`, `.whitespace-pre-wrap`), conversation sidebars, lists (`ul`, `ol`), tables, and editor input fields.
 - **Flawless Bilingual Rendering**: Persian sentences align to the right with proper punctuation placement, while English technical phrases, inline code, and symbols remain perfectly oriented.
 
 ### 📦 100% Offline Embedded Typography (Free & Open-Source)

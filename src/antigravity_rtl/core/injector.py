@@ -477,7 +477,7 @@ try {{
         }}
     }}
 
-    // --- Smart Direction Subsystem (70% Latin Threshold & Letter-Only Counting) ---
+    // --- Smart Direction Subsystem (Multi-heuristic & Technical Prefix Support) ---
     function detectSmartDirection(text, fallbackDir) {{
         if (!text) return null;
         const trimmed = text.trim();
@@ -500,6 +500,36 @@ try {{
         // If the first alphabetic letter is Persian, it is always a Persian sentence (RTL)
         const firstLetterMatch = trimmed.match(/[a-zA-Z؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/);
         if (firstLetterMatch && /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/.test(firstLetterMatch[0])) {{
+            return 'rtl';
+        }}
+
+        // Technical prefix pattern (e.g. "filename.ext: Persian explanation" or "token - Persian...")
+        const prefixMatch = trimmed.match(/^[^:\\-–—\\n]+[:\\-–—]\\s*(.*)$/);
+        if (prefixMatch && prefixMatch[1]) {{
+            const rest = prefixMatch[1].trim();
+            const restPersian = (rest.match(/[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/g) || []).length;
+            const restLatin = (rest.match(/[a-zA-Z]/g) || []).length;
+            if (restPersian > 0) {{
+                const restFirst = rest.match(/[a-zA-Z؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/);
+                if (restFirst && /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/.test(restFirst[0])) {{
+                    return 'rtl';
+                }}
+                if ((restPersian / (restPersian + restLatin)) >= 0.3) {{
+                    return 'rtl';
+                }}
+            }}
+        }}
+
+        // Word-level analysis: count Persian words vs total words
+        const persianWords = trimmed.match(/[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]{{2,}}/g) || [];
+        const words = trimmed.split(/\\s+/).filter(w => /[a-zA-Z؀-ۿ]/.test(w));
+        if (persianWords.length >= 2 && (persianWords.length / Math.max(words.length, 1)) >= 0.25) {{
+            return 'rtl';
+        }}
+
+        // Lowered threshold: if Persian letters constitute >= 30% of total letters
+        const persianRatio = persianCount / totalLetters;
+        if (persianRatio >= 0.3) {{
             return 'rtl';
         }}
 
@@ -528,8 +558,33 @@ try {{
             'span.duration, div.duration, span[class*="duration"], div[class*="duration"], ' +
             'span[class*="elapsed"], div[class*="elapsed"], ' +
             'div[data-testid="status-bar"], ' +
+            '[data-testid*="diff"], [data-testid*="tool"], [data-testid*="collapsible"], ' +
+            'button, [role="button"], .agy-button, [class*="diff-stat"], ' +
+            '.files-changed-header, button.review-button, ' +
+            '.katex, .katex-display, math, ' +
             '#ag-appearance-popover'
         );
+    }}
+
+    function updateInputDirection(el) {{
+        if (!el) return;
+        const editor = (el.getAttribute && el.getAttribute('contenteditable') === 'true') ? el : (el.closest && el.closest('[contenteditable="true"], [data-lexical-editor="true"]'));
+        if (!editor) return;
+
+        const text = (editor.tagName === 'INPUT' || editor.tagName === 'TEXTAREA') ? editor.value : (editor.textContent || '');
+        if (!text || !text.trim()) {{
+            editor.setAttribute('dir', 'ltr');
+            const ps = editor.querySelectorAll ? editor.querySelectorAll('p') : [];
+            for (let i = 0; i < ps.length; i++) ps[i].setAttribute('dir', 'ltr');
+            return;
+        }}
+
+        const dir = detectSmartDirection(text);
+        if (dir) {{
+            editor.setAttribute('dir', dir);
+            const ps = editor.querySelectorAll ? editor.querySelectorAll('p') : [];
+            for (let i = 0; i < ps.length; i++) ps[i].setAttribute('dir', dir);
+        }}
     }}
 
     function applySmartDirectionToElement(el) {{
@@ -570,6 +625,30 @@ try {{
             return;
         }}
 
+        if (el.getAttribute('data-testid') === 'user-message-content' ||
+            el.getAttribute('data-testid') === 'user-message-bubble' ||
+            el.getAttribute('data-testid') === 'user-input-step' ||
+            (el.classList && (el.classList.contains('agy-user-bubble') || el.classList.contains('whitespace-pre-wrap') || el.classList.contains('agy-user-bubble-frame')))) {{
+            const dir = detectSmartDirection(el.textContent || '');
+            if (dir) {{
+                if (el.getAttribute('data-testid') !== 'user-input-step' && (!el.classList || !el.classList.contains('agy-user-bubble-frame'))) {{
+                    el.setAttribute('dir', dir);
+                }}
+                const bubble = el.querySelector ? el.querySelector('[data-testid="user-message-bubble"], .agy-user-bubble') : null;
+                if (bubble) bubble.setAttribute('dir', dir);
+                const content = el.querySelector ? el.querySelector('[data-testid="user-message-content"]') : null;
+                if (content) content.setAttribute('dir', dir);
+                const children = el.querySelectorAll ? el.querySelectorAll('.whitespace-pre-wrap') : [];
+                for (let i = 0; i < children.length; i++) children[i].setAttribute('dir', dir);
+            }}
+            return;
+        }}
+
+        if (el.closest && (el.closest('[data-testid="agent-input-box"]') || el.closest('.surface-composer'))) {{
+            updateInputDirection(el);
+            return;
+        }}
+
         if (el.classList && el.classList.contains('artifact-card')) {{
             const desc = el.querySelector('.text-secondary-foreground, span.line-clamp-3');
             if (desc) {{
@@ -580,7 +659,7 @@ try {{
         }}
 
         if ((el.classList && el.classList.contains('line-clamp-3')) || (el.classList && el.classList.contains('text-secondary-foreground'))) {{
-            if (el.closest('.artifact-card')) {{
+            if (el.closest && el.closest('.artifact-card')) {{
                 const dir = detectSmartDirection(el.textContent || '');
                 if (dir) el.setAttribute('dir', dir);
                 return;
@@ -609,6 +688,28 @@ try {{
                     const pDir = detectSmartDirection(ps[i].textContent || '', dir);
                     if (pDir) ps[i].setAttribute('dir', pDir);
                 }}
+                const parentList = el.parentElement;
+                if (parentList && (parentList.tagName === 'UL' || parentList.tagName === 'OL')) {{
+                    if (dir === 'rtl' || !parentList.getAttribute('dir')) {{
+                        parentList.setAttribute('dir', dir);
+                    }}
+                }}
+            }}
+            return;
+        }}
+
+        if (el.tagName === 'UL' || el.tagName === 'OL') {{
+            const lis = el.querySelectorAll('li');
+            let rtlCount = 0;
+            for (let i = 0; i < lis.length; i++) {{
+                const liDir = lis[i].getAttribute('dir') || detectSmartDirection(lis[i].textContent || '');
+                if (liDir === 'rtl') rtlCount++;
+            }}
+            if (rtlCount > 0 && rtlCount >= lis.length / 2) {{
+                el.setAttribute('dir', 'rtl');
+            }} else if (lis.length === 0) {{
+                const dir = detectSmartDirection(el.textContent || '');
+                if (dir) el.setAttribute('dir', dir);
             }}
             return;
         }}
@@ -627,14 +728,21 @@ try {{
 
         if (el.tagName === 'BLOCKQUOTE') {{
             const dir = detectSmartDirection(el.textContent || '');
-            if (dir) el.setAttribute('dir', dir);
+            if (dir) {{
+                el.setAttribute('dir', dir);
+                const ps = el.querySelectorAll('p');
+                for (let i = 0; i < ps.length; i++) {{
+                    const pDir = detectSmartDirection(ps[i].textContent || '', dir);
+                    if (pDir) ps[i].setAttribute('dir', pDir);
+                }}
+            }}
             return;
         }}
 
         if (el.tagName === 'DIV') {{
             const isChatMessage = el.getAttribute('data-testid') === 'chat-message' ||
                                  (el.className && typeof el.className === 'string' &&
-                                  (el.className.includes('chat-message') || el.className.includes('prose')));
+                                  (el.className.includes('chat-message') || el.className.includes('prose') || el.className.includes('leading-relaxed')));
             if (isChatMessage) {{
                 const style = window.getComputedStyle ? window.getComputedStyle(el) : null;
                 const hasScroll = style && (style.overflowY === 'auto' || style.overflowY === 'scroll');
@@ -651,10 +759,13 @@ try {{
         if (document.body && document.body.classList.contains('ag-rtl-disabled')) return;
 
         const base = (root.nodeType === 9 || root === document.body) ? document : root;
-        const selector = 'p, h1, h2, h3, h4, h5, h6, li, blockquote, table, ' +
+        const selector = 'p, h1, h2, h3, h4, h5, h6, li, ul, ol, blockquote, table, ' +
                          'div.artifact-card, div.artifact-card .text-secondary-foreground, ' +
                          '[data-testid="conversation-row-sidebar"], [data-testid="conversation-row-sidebar"] span, [data-testid="conversation-row-sidebar"] .truncate, ' +
+                         '[data-testid="user-message-content"], [data-testid="user-message-bubble"], [data-testid="user-input-step"], .agy-user-bubble, .whitespace-pre-wrap, ' +
+                         'div[data-lexical-editor="true"], [data-testid="agent-input-box"] [contenteditable="true"], .surface-composer [contenteditable="true"], ' +
                          'div[data-lexical-editor="true"] p, #antigravity\\.agentSidePanelInputBox [contenteditable="true"] p, ' +
+                         '[data-testid="agent-input-box"] .hidden-if-empty *, ' +
                          'input, textarea, [contenteditable="true"]';
         try {{
             const elements = base.querySelectorAll(selector);
@@ -663,7 +774,6 @@ try {{
             }}
         }} catch(e) {{}}
     }}
-
     // --- Menubar Button & Settings Popover ---
     let popoverInstance = null;
 
@@ -685,10 +795,9 @@ try {{
 
         btn = document.createElement('button');
         btn.id = 'ag-appearance-menu-btn';
-        btn.className = 'inline-flex items-center font-medium transition-colors select-none outline-none cursor-pointer justify-center disabled:opacity-50 bg-secondary/80 hover:bg-secondary text-foreground h-7 text-xs rounded-md gap-1.5 px-3 border border-border/40 select-none';
+        btn.className = 'agy-button agy-button-sm inline-flex items-center font-medium transition-colors select-none outline-none cursor-pointer justify-center disabled:opacity-50 bg-transparent text-muted-foreground hover:text-foreground hover:bg-secondary focus-visible:text-foreground focus-visible:bg-secondary h-7 text-sm rounded-md gap-1.5 px-2.5';
         btn.setAttribute('data-testid', 'title-menu-bar-item');
         btn.title = 'Appearance & Smart RTL Settings';
-        btn.style.cssText = 'font-size: 12.5px; font-weight: 600; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;';
         btn.innerHTML = `
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.9; color:#60a5fa;">
                 <circle cx="12" cy="12" r="3"></circle>
@@ -728,8 +837,9 @@ try {{
                 top: ${{rect.bottom + 6}}px;
                 left: ${{Math.min(rect.left, window.innerWidth - 365)}}px;
                 width: 350px;
-                max-height: 85vh;
+                max-height: calc(100vh - ${{rect.bottom + 16}}px);
                 overflow-y: auto;
+                box-sizing: border-box;
                 background: rgba(22, 22, 26, 0.96);
                 backdrop-filter: blur(20px);
                 -webkit-backdrop-filter: blur(20px);
@@ -738,7 +848,7 @@ try {{
                 font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 direction: ltr;
                 text-align: left;
-                padding: 16px;
+                padding: 14px;
                 border-radius: 14px;
                 box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
                 z-index: 999999;
@@ -746,7 +856,7 @@ try {{
             `;
 
             popoverInstance.innerHTML = `
-                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 11px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span style="font-size: 15px; font-weight: 700; color: #fff; letter-spacing: 0.2px;">Appearance & Smart RTL</span>
                     </div>
@@ -754,7 +864,7 @@ try {{
                 </div>
 
                 <!-- RTL Toggle -->
-                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 11px 14px; border-radius: 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 9px 12px; border-radius: 10px; margin-bottom: 9px; border: 1px solid rgba(255,255,255,0.08);">
                     <div>
                         <div style="font-size: 13.5px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px;">
                             <span>Smart RTL</span>
@@ -768,7 +878,7 @@ try {{
                 </div>
 
                 <!-- Persian Digits Toggle -->
-                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 11px 14px; border-radius: 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 9px 12px; border-radius: 10px; margin-bottom: 9px; border: 1px solid rgba(255,255,255,0.08);">
                     <div>
                         <div style="font-size: 13.5px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px;">
                             <span>Persian Digits</span>
@@ -782,7 +892,7 @@ try {{
                 </div>
 
                 <!-- Justify Text Toggle -->
-                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 11px 14px; border-radius: 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 9px 12px; border-radius: 10px; margin-bottom: 9px; border: 1px solid rgba(255,255,255,0.08);">
                     <div>
                         <div style="font-size: 13.5px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px;">
                             <span>Justify Text</span>
@@ -796,7 +906,7 @@ try {{
                 </div>
 
                 <!-- Anti-Sanction & Proxy Shield Card -->
-                <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;">
+                <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px;">
                     <div style="display: flex; align-items: center; justify-content: space-between;">
                         <div>
                             <div style="font-size: 13.5px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 7px;">
@@ -859,7 +969,7 @@ try {{
                 </div>
 
                 <!-- Font Family Selection -->
-                <div style="margin-bottom: 14px;">
+                <div style="margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
                         <label style="font-size: 13px; font-weight: 600; color: #e4e4e7;">Font Family:</label>
                         <span id="ag-font-family-badge" style="font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600;"></span>
@@ -885,7 +995,7 @@ try {{
                 </div>
 
                 <!-- Code & Terminal Font Selection -->
-                <div style="margin-bottom: 14px;">
+                <div style="margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
                         <label style="font-size: 13px; font-weight: 600; color: #e4e4e7;">Code & Terminal Font:</label>
                         <span id="ag-code-font-badge" style="font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600;"></span>
@@ -904,7 +1014,7 @@ try {{
                 </div>
 
                 <!-- Font Size Stepper & Slider -->
-                <div style="margin-bottom: 14px;">
+                <div style="margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
                         <span style="font-size: 13px; font-weight: 600; color: #e4e4e7;">Font Size:</span>
                         <span id="ag-font-size-badge" style="font-size: 12.5px; font-weight: 700; color: #60a5fa; background: rgba(59, 130, 246, 0.18); border: 1px solid rgba(59,130,246,0.3); padding: 2px 9px; border-radius: 5px;">${{currentSettings.fontSize}}px</span>
@@ -917,7 +1027,7 @@ try {{
                 </div>
 
                 <!-- Line Height -->
-                <div style="margin-bottom: 16px;">
+                <div style="margin-bottom: 12px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px;">
                         <span style="font-size: 13px; font-weight: 600; color: #e4e4e7;">Line Spacing:</span>
                     </div>
@@ -929,7 +1039,7 @@ try {{
                 </div>
 
                 <!-- Footer Actions -->
-                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
                     <button id="ag-reset-defaults" style="background: transparent; border: none; color: #a1a1aa; font-size: 12px; font-weight: 500; cursor: pointer; padding: 5px 8px; border-radius: 6px; display: flex; align-items: center; gap: 5px; font-family: inherit; transition: color .15s;">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                         <span>Reset Defaults</span>
@@ -1448,9 +1558,13 @@ try {{
         }}
     }});
 
+    document.addEventListener('input', (e) => updateInputDirection(e.target), true);
+    document.addEventListener('keyup', (e) => updateInputDirection(e.target), true);
+    document.addEventListener('compositionend', (e) => updateInputDirection(e.target), true);
+
     function startObserver() {{
         if (document.body) {{
-            observer.observe(document.body, {{ childList: true, subtree: true, characterData: true }});
+            observer.observe(document.body, {{ childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class', 'data-testid'] }});
             processAllSmartRTL(document.body);
         }} else {{
             setTimeout(startObserver, 50);
